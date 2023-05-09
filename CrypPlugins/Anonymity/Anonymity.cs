@@ -39,10 +39,9 @@ namespace CrypTool.Plugins.Anonymity
 
         public string _csv;
         public string _output;
-        // HOWTO: You need to adapt the settings class as well, see the corresponding file.
         private readonly AnonymitySettings _settings = new AnonymitySettings();
         private AnonymityPresentation _presentation = new AnonymityPresentation();
-        private DataTable tabelle = new DataTable();
+
 
         #endregion
 
@@ -119,7 +118,7 @@ namespace CrypTool.Plugins.Anonymity
                 Presentation.Dispatcher.Invoke(DispatcherPriority.Normal, (SendOrPostCallback)delegate
                 {
 
-                    _presentation.ClearComboboxList();
+                    _presentation.ClearPresentation();
                     _presentation.CreateDataTable(_csv, rowSeperator, columnSeperator);
 
 
@@ -172,6 +171,19 @@ namespace CrypTool.Plugins.Anonymity
         /// </summary>
         public void Stop()
         {
+
+
+            Presentation.Dispatcher.Invoke(DispatcherPriority.Normal, (SendOrPostCallback)delegate
+            {
+
+
+                _presentation.table.Columns.Clear();
+
+
+
+            }, null);
+
+
         }
 
         /// <summary>

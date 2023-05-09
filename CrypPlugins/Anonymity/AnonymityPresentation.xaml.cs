@@ -42,8 +42,8 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
-
-        public void ClearComboboxList()
+        // clear presentation, remove all elements in the class lists and stackpanels
+        public void ClearPresentation()
         {
             hiddenComboboxes.Clear();
             labelComboboxes.Clear();
@@ -70,9 +70,10 @@ namespace CrypTool.Plugins.Anonymity
 
         }
 
-
+        // create the datatable in the presentation
         public void CreateDataTable(string InputCsv, string RowSeperator, string ColumnSeperator)
         {
+
             DataTable dt = new DataTable();
 
             // split the input string into an array of lines
@@ -137,7 +138,7 @@ namespace CrypTool.Plugins.Anonymity
             }
 
 
-
+            // create apply button
             Button applyButton = new Button();
             applyButton.Width = 100;
             applyButton.HorizontalAlignment = HorizontalAlignment.Center;
@@ -152,7 +153,7 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-            // bind the DataTable to a DataGrid
+            // datatable bind to datagrid in presentation
             table.ItemsSource = dt.DefaultView;
             table.CanUserSortColumns = false;
             table.CanUserAddRows = false;
@@ -160,15 +161,19 @@ namespace CrypTool.Plugins.Anonymity
             table.CanUserResizeColumns = false;
             table.CanUserAddRows = false;
             table.CanUserDeleteRows = false;
+
+            //initial state of table is copied
             initialTable = dt.Copy();
 
 
 
-
+            // reset button click handler is added
             resetButton.Click += ResetButton_Click;
 
         }
 
+
+        // reset button functionality, presentation is reseted to the state before any action is done by the user
         private void ResetButton_Click(object sender, RoutedEventArgs e)
         {
             foreach (ComboBox comboBox in hiddenComboboxes)
@@ -192,10 +197,7 @@ namespace CrypTool.Plugins.Anonymity
             table.ItemsSource = currentTable.DefaultView;
         }
 
-        private string ProcessEscapeSymbols(string p)
-        {
-            return p.Replace("\\n", "\n").Replace("\\r", "\r").Replace("\\b", "\b").Replace("\\t", "\t").Replace("\\v", "\v").Replace("\\", "\\");
-        }
+     
 
 
 
@@ -217,6 +219,8 @@ namespace CrypTool.Plugins.Anonymity
 
 
         }
+
+
         // code to execute when the apply button is clicked
         private void Apply_Click(object sender, RoutedEventArgs e)
         {
@@ -240,7 +244,7 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
-
+        // numeric items created, according to index of hiddencomboboxes the corresponding column values are used
         private void GenerateNumericItems()
         {
             for (int i = 0; i < hiddenComboboxes.Count(); i++)
@@ -265,7 +269,7 @@ namespace CrypTool.Plugins.Anonymity
                     canvas.HorizontalAlignment = HorizontalAlignment.Left;
                     canvas.VerticalAlignment = VerticalAlignment.Top;
                     distinctValues.Sort((a, b) => int.Parse(a).CompareTo(int.Parse(b)));
-                    var textblock = new TextBlock(); // textblock to display cell value
+                    var textblock = new TextBlock(); 
                     textblock.FontWeight = FontWeights.DemiBold;
                     textblock.FontSize = 14.0;
                     textblock.Foreground = Brushes.Black;
@@ -275,10 +279,7 @@ namespace CrypTool.Plugins.Anonymity
                     functionContainer.Children.Add(textblock);
 
 
-
-
-
-
+                  // values in the column are added to the canvas
                     foreach (var col in distinctValues)
                     {
                         var numTextblock = new TextBlock();
@@ -304,6 +305,7 @@ namespace CrypTool.Plugins.Anonymity
                     stackPanel.Children.Add(canvas);
                     functionContainer.Children.Add(stackPanel);
 
+                    // UI elements for range selection are created
                     var rangeStackPanel = new StackPanel { Orientation = Orientation.Horizontal };
 
                     var rangeTextBlock = new TextBlock();
@@ -321,19 +323,22 @@ namespace CrypTool.Plugins.Anonymity
 
                     rangeStackPanel.Children.Add(rangeComboBox);
 
-                    // Populate the combobox with numbers
+                    // Populate the combobox with numbers, combobox values start with 2 and go till distinctvalues.Count - 1, should ensure that a user can set maximally "amount of distinct values" - 1 ranges
 
                     for (int j = 2; j < distinctValues.Count; j++)
                     {
                         rangeComboBox.Items.Add(j);
                     }
 
+                    // group and degroup buttons
                     var btn = new Button { Content = "Group", Background = Brushes.SkyBlue, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
                     btn.Click += (s, evt) => NumericGroupBtnClick(s, evt, canvas, index, rangeComboBox);
                     var debtn = new Button { Content = "Degroup", Background = Brushes.MediumPurple, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
                     debtn.Click += (s, evt) => NumericDegroupBtnClick(s, evt, btn, rangeComboBox, canvas, index);
                     rangeStackPanel.Children.Add(btn);
                     rangeStackPanel.Children.Add(debtn);
+
+                    // if a different value is selected for the range combobox, existing redbars are removed and the selected amount of redbars are added
                     rangeComboBox.SelectionChanged += (sender, e) =>
                     {
 
@@ -368,6 +373,8 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
+
+        // degroup functionality for numeric items 
         private void NumericDegroupBtnClick(object s, RoutedEventArgs evt, Button button, ComboBox comboBox, Canvas canvas, int columnIndex)
         {
 
@@ -406,7 +413,7 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-
+        // checks if the given value lies within any of the provided ranges, if matching the range is returned 
         private string GetRangeForValue(int value, List<(int First, int Last)> ranges)
         {
             foreach (var range in ranges)
@@ -420,7 +427,7 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
-
+        // checks if the given range represents a single value
         private bool IsSingleValueRange(string range)
         {
             var regex = new Regex(@"\[(\d+) - (\d+)\]");
@@ -441,7 +448,7 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-
+        // group data in column with the index columnIndex, grouping is done based on the positon of the rectangles, based on the position left and right ranges are created
         private void NumericGroupBtnClick(object sender, RoutedEventArgs e, Canvas canvas, int columnIndex, ComboBox combo)
         {
             canvas.Children.ReorderElementsByLeftPosition();
@@ -488,10 +495,10 @@ namespace CrypTool.Plugins.Anonymity
                 rightRanges.Add((int.Parse(rightTextBlocks.First().Text), int.Parse(rightTextBlocks.Last().Text)));
             }
 
-            var rows = table.Items.Cast<DataRowView>().ToList(); // get all rows from the datagrid
+            var rows = table.Items.Cast<DataRowView>().ToList(); 
             foreach (var row in rows)
             {
-                var cellValueStr = row.Row[columnIndex].ToString(); // get the value of the cell in the column
+                var cellValueStr = row.Row[columnIndex].ToString(); 
                 int.TryParse(cellValueStr, out int cellValue);
 
                 string leftRange = GetRangeForValue(cellValue, leftRanges);
@@ -523,7 +530,7 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-
+        // method to create the redbars
         private Rectangle CreateRedBar(Canvas canvas, double initialLeftPosition)
         {
             var redBar = new Rectangle
@@ -591,6 +598,8 @@ namespace CrypTool.Plugins.Anonymity
             return redBar;
         }
 
+
+        // categoric items are created
         private void GenerateCategoricItems()
         {
 
@@ -601,6 +610,8 @@ namespace CrypTool.Plugins.Anonymity
 
                     int index = i;
 
+
+                    // distinct values of the corresponding column in the table are taken
                     List<string> distinctValues = table.Items.Cast<DataRowView>()
                                     .Select(row => row.Row.ItemArray[i].ToString())
                                     .Distinct().ToList();
@@ -618,6 +629,7 @@ namespace CrypTool.Plugins.Anonymity
                     textblock.Margin = new Thickness(0, 10, 10, 10);
                     textblock.Text = "Categoric Column: " + table.Columns[i].Header;
 
+                    // canvas is filled with the distinct values of the column
                     foreach (var col in distinctValues)
                     {
                         var border = new Border();
@@ -630,7 +642,7 @@ namespace CrypTool.Plugins.Anonymity
                         border.Padding = new Thickness(10);
                         border.Child = new TextBlock() { Text = col, Foreground = Brushes.White, FontSize = 14 };
 
-                        // events to handle border drag and drop
+                 
                         border.MouseLeftButtonDown += (sender, e) =>
                         {
                             var element = sender as UIElement;
@@ -647,15 +659,17 @@ namespace CrypTool.Plugins.Anonymity
                             if (isDragging)
                             {
                                 Point currentPosition = e.GetPosition(canvas);
-                                double deltaX = currentPosition.X - startPoint.X;
-                                double deltaY = currentPosition.Y - startPoint.Y;
-                                double newLeft = Canvas.GetLeft(border) + deltaX;
-                                double newTop = Canvas.GetTop(border) + deltaY;
-                                if (newLeft >= 0 && newLeft <= canvas.ActualWidth - border.ActualWidth && newTop >= 0 && newTop <= canvas.ActualHeight - border.ActualHeight)
+                                // calculate change in position
+                                double x = currentPosition.X - startPoint.X;
+                                double y= currentPosition.Y - startPoint.Y;
+                                double newX = Canvas.GetLeft(border) + x;
+                                double newY = Canvas.GetTop(border) + y;
+                                // if new position is within bounds, update position
+                                if (newX >= 0 && newX <= canvas.ActualWidth - border.ActualWidth && newY >= 0 && newY <= canvas.ActualHeight - border.ActualHeight)
                                 {
 
-                                    Canvas.SetLeft(border, newLeft);
-                                    Canvas.SetTop(border, newTop);
+                                    Canvas.SetLeft(border, newX);
+                                    Canvas.SetTop(border, newY);
 
                                     startPoint = currentPosition;
                                 }
@@ -692,6 +706,8 @@ namespace CrypTool.Plugins.Anonymity
             CalculateKValue();
         }
 
+
+        // degroup functionality for categoric items
         private void CategoricDeGroupBtnClick(object sender, RoutedEventArgs e, int columnIndex)
         {
             var btn = sender as Button;
@@ -742,16 +758,16 @@ namespace CrypTool.Plugins.Anonymity
                     if (isDragging)
                     {
                         Point currentPosition = ev.GetPosition(canvas);
-                        double deltaX = currentPosition.X - startPoint.X;
-                        double deltaY = currentPosition.Y - startPoint.Y;
-                        double newLeft = Canvas.GetLeft(border) + deltaX;
-                        double newTop = Canvas.GetTop(border) + deltaY;
-                        if (newLeft >= 0 && newLeft <= canvas.ActualWidth - border.ActualWidth && newTop >= 0 && newTop <= canvas.ActualHeight - border.ActualHeight)
+                        double x = currentPosition.X - startPoint.X;
+                        double y = currentPosition.Y - startPoint.Y;
+                        double newX = Canvas.GetLeft(border) + x;
+                        double newY = Canvas.GetTop(border) + y;
+                        if (newX >= 0 && newX <= canvas.ActualWidth - border.ActualWidth && newY >= 0 && newY <= canvas.ActualHeight - border.ActualHeight)
                         {
-                            // Set the new position of the border
-                            Canvas.SetLeft(border, newLeft);
-                            Canvas.SetTop(border, newTop);
-                            // Update the click position
+               
+                            Canvas.SetLeft(border, newX);
+                            Canvas.SetTop(border, newY);
+                   
                             startPoint = currentPosition;
                         }
                     }
@@ -774,6 +790,8 @@ namespace CrypTool.Plugins.Anonymity
 
         }
 
+
+        // categoric group functionality, intersecting elements in canvas are grouped together
         private void CategoricGroupBtnClick(object sender, RoutedEventArgs e, int index)
         {
 
@@ -782,7 +800,8 @@ namespace CrypTool.Plugins.Anonymity
             var canvas = container.Children[0] as Canvas;
             var groups = new List<List<string>>();
             List<string> categoricOutput = new List<string>();
-            // loop over canvas children and find UI elements that intersect
+
+            // loop over canvas children and find íntersecting
             for (int i = 0; i < canvas.Children.Count; ++i)
             {
                 var item1 = canvas.Children[i] as Border;
@@ -832,18 +851,18 @@ namespace CrypTool.Plugins.Anonymity
 
             int columnIndex = index;
             Console.WriteLine("Column Index: " + columnIndex);
-            var rows = table.Items.Cast<DataRowView>().ToList(); // get all rows from the datagrid
+            var rows = table.Items.Cast<DataRowView>().ToList(); 
             foreach (var row in rows)
             {
 
-                var cellValue = row.Row[columnIndex].ToString(); // get the value of the cell in the column
+                var cellValue = row.Row[columnIndex].ToString(); 
                 Console.WriteLine("Cell value: " + cellValue);
                 foreach (var value in categoricOutput)
                 {
 
                     if (value != null && value.Contains(cellValue) && cellValue != "|" && cellValue != "")
                     {
-                        row.Row[columnIndex] = value; // set the new value for the cell in the column
+                        row.Row[columnIndex] = value; 
                     }
                     else
                     {
@@ -861,6 +880,8 @@ namespace CrypTool.Plugins.Anonymity
             CalculateKValue();
         }
 
+
+        // check if all comboboxes are selected
         private bool CheckInput()
         {
             for (int i = 0; i < labelComboboxes.Count; i++)
@@ -878,6 +899,9 @@ namespace CrypTool.Plugins.Anonymity
             }
             return true;
         }
+
+
+        // column visibility, if a combobox has value "Identifier", this column is not visible anymore
         private void ColumnVisibility()
         {
             for (int i = 0; i < labelComboboxes.Count; i++)
@@ -902,7 +926,7 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
-
+        // calculation of k for k-Anonymity
         private void CalculateKValue()
         {
             // Find the column indexes with "Quasi-Identifier" selected
@@ -927,10 +951,10 @@ namespace CrypTool.Plugins.Anonymity
             // Update kLabel
             kLabel.Content = minGroupSize.ToString() + " Anonymity";
 
-            // Create a new DataTable with the same schema and add grouped rows
+         
             DataTable newTable = currentTable.Clone();
 
-            // Check if the GroupID column already exists, if not, add it
+            // add a column groupID for the equivalence classes in the datatable, these are used to assign a color
             if (!newTable.Columns.Contains("GroupID"))
             {
                 newTable.Columns.Add("GroupID", typeof(int));
@@ -941,7 +965,7 @@ namespace CrypTool.Plugins.Anonymity
             {
                 foreach (var row in group)
                 {
-                    // Create a new row with the same item array and additional GroupID column
+  
                     DataRow newRow = newTable.NewRow();
                     newRow.ItemArray = row.ItemArray;
                     newRow["GroupID"] = groupID;
@@ -950,7 +974,6 @@ namespace CrypTool.Plugins.Anonymity
                 groupID++;
             }
 
-            // Set the DataGrid's ItemsSource to the new table
             table.ItemsSource = newTable.DefaultView;
             ColumnVisibility();
         }
