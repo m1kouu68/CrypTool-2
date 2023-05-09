@@ -25,7 +25,8 @@ namespace CrypTool.Plugins.Anonymity
     {
         #region Private Variables
 
-        private int someParameter = 0;
+        private string _rowSeparator = "\\n";
+        private string _columnSeparator = ",";
 
         #endregion
 
@@ -35,23 +36,48 @@ namespace CrypTool.Plugins.Anonymity
         /// HOWTO: This is an example for a setting entity shown in the settings pane on the right of the CT2 main window.
         /// This example setting uses a number field input, but there are many more input types available, see ControlType enumeration.
         /// </summary>
-        [TaskPane("SomeParameter", "This is a parameter tooltip", null, 1, false, ControlType.NumericUpDown, ValidationType.RangeInteger, 0, Int32.MaxValue)]
-        public int SomeParameter
+        [TaskPane("Row Seperator", "This is the Row Seperator", null, 0, false, ControlType.TextBox)]
+        public string RowSeparator
         {
             get
             {
-                return someParameter;
+                return _rowSeparator;
             }
             set
             {
-                if (someParameter != value)
+                if (_rowSeparator != value)
                 {
-                    someParameter = value;
+                    _rowSeparator = value;
                     // HOWTO: MUST be called every time a property value changes with correct parameter name
-                    OnPropertyChanged("SomeParameter");
+                    OnPropertyChanged("_rowSeparator;");
                 }
             }
         }
+
+        [TaskPane("Column Seperator", "This is the Column Seperator", null, 1, false, ControlType.TextBox)]
+        public string ColumnSeparator
+        {
+
+            get
+            {
+                return _columnSeparator;
+            }
+            set
+            {
+                if (_columnSeparator != value)
+                {
+                    _columnSeparator = value;
+                    // HOWTO: MUST be called every time a property value changes with correct parameter name
+                    OnPropertyChanged("ColumnSeparator");
+                }
+            }
+        }
+
+
+
+
+
+
 
         #endregion
 
@@ -71,4 +97,5 @@ namespace CrypTool.Plugins.Anonymity
 
         }
     }
+
 }

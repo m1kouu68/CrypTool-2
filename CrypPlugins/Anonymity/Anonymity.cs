@@ -15,26 +15,34 @@
 */
 using CrypTool.PluginBase;
 using CrypTool.PluginBase.Miscellaneous;
+using System;
 using System.ComponentModel;
+using System.Data;
+using System.Threading;
 using System.Windows.Controls;
+using System.Windows.Threading;
 
 namespace CrypTool.Plugins.Anonymity
 {
     // HOWTO: Plugin developer HowTo can be found here: https://github.com/CrypToolProject/CrypTool-2/wiki/Developer-HowTo
 
     // HOWTO: Change author name, email address, organization and URL.
-    [Author("Anonymous", "coredevs@cryptool.org", "CrypTool 2 Team", "https://www.cryptool.org")]
+    [Author("Mikail Sarier", "mikail.sarier@students.uni-mannheim.de", "Universität Mannheim", "")]
     // HOWTO: Change plugin caption (title to appear in CT2) and tooltip.
     // You can (and should) provide a user documentation as XML file and an own icon.
-    [PluginInfo("Example Plugin", "Subtract one number from another", "Anonymity/userdoc.xml", new[] { "CrypWin/images/default.png" })]
+    [PluginInfo("K-Anonymity", "Applies k-Anonymity to DataSet", "Anonymity/userdoc.xml", new[] { "CrypWin/images/default.png" })]
     // HOWTO: Change category to one that fits to your plugin. Multiple categories are allowed.
-    [ComponentCategory(ComponentCategory.ToolsMisc)]
+    [ComponentCategory(ComponentCategory.CiphersClassic)]
     public class Anonymity : ICrypComponent
     {
         #region Private Variables
 
+        public string _csv;
+        public string _output;
         // HOWTO: You need to adapt the settings class as well, see the corresponding file.
         private readonly AnonymitySettings _settings = new AnonymitySettings();
+        private AnonymityPresentation _presentation = new AnonymityPresentation();
+        private DataTable tabelle = new DataTable();
 
         #endregion
 
@@ -44,23 +52,25 @@ namespace CrypTool.Plugins.Anonymity
         /// HOWTO: Input interface to read the input data. 
         /// You can add more input properties of other type if needed.
         /// </summary>
-        [PropertyInfo(Direction.InputData, "Input name", "Input tooltip description")]
-        public int SomeInput
+        [PropertyInfo(Direction.InputData, "Input CSV", "Text in CSV-format")]
+        public string InputCSV
         {
-            get;
-            set;
+            get
+            {
+                return _csv;
+            }
+            set
+            {
+                _csv = value;
+                OnPropertyChanged("InputCSV");
+            }
         }
 
         /// <summary>
         /// HOWTO: Output interface to write the output data.
         /// You can add more output properties ot other type if needed.
         /// </summary>
-        [PropertyInfo(Direction.OutputData, "Output name", "Output tooltip description")]
-        public int SomeOutput
-        {
-            get;
-            set;
-        }
+
 
         #endregion
 
@@ -79,7 +89,7 @@ namespace CrypTool.Plugins.Anonymity
         /// </summary>
         public UserControl Presentation
         {
-            get { return null; }
+            get { return _presentation; }
         }
 
         /// <summary>
@@ -89,26 +99,65 @@ namespace CrypTool.Plugins.Anonymity
         {
         }
 
-        /// <summary>
-        /// Called every time this plugin is run in the workflow execution.
-        /// </summary>
         public void Execute()
         {
+            if (string.IsNullOrEmpty(_csv))
+            {
+                GuiLogMessage("Empty CSV. Can not process.", NotificationLevel.Warning);
+                return;
+            }
+
+
+
+
+            try
+            {
+
+                string rowSeperator = ProcessEscapeSymbols(_settings.RowSeparator);
+                string columnSeperator = ProcessEscapeSymbols(_settings.ColumnSeparator);
+
+                Presentation.Dispatcher.Invoke(DispatcherPriority.Normal, (SendOrPostCallback)delegate
+                {
+
+                    _presentation.ClearComboboxList();
+                    _presentation.CreateDataTable(_csv, rowSeperator, columnSeperator);
+
+
+                }, null);
+
+
+            }
+            catch (Exception ex)
+            {
+
+                GuiLogMessage(string.Format("Exception occured during processing of CSV: {0}", ex.Message), NotificationLevel.Error);
+
+            }
+
             // HOWTO: Use this to show the progress of a plugin algorithm execution in the editor.
             ProgressChanged(0, 1);
 
             // HOWTO: After you have changed an output property, make sure you announce the name of the changed property to the CT2 core.
-            SomeOutput = SomeInput - _settings.SomeParameter;
-            OnPropertyChanged("SomeOutput");
+
+            OnPropertyChanged("");
 
             // HOWTO: You can pass error, warning, info or debug messages to the CT2 main window.
-            if (_settings.SomeParameter < 0)
-            {
-                GuiLogMessage("SomeParameter is negative", NotificationLevel.Debug);
-            }
+
             // HOWTO: Make sure the progress bar is at maximum when your Execute() finished successfully.
             ProgressChanged(1, 1);
         }
+
+
+        private string ProcessEscapeSymbols(string p)
+        {
+            return p.Replace("\\n", "\n").Replace("\\r", "\r").Replace("\\b", "\b").Replace("\\t", "\t").Replace("\\v", "\v").Replace("\\", "\\");
+        }
+
+
+
+
+
+
 
         /// <summary>
         /// Called once after workflow execution has stopped.

@@ -77,7 +77,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Anonymity.cs" />
+    <Compile Include="AnonymityPresentation.xaml.cs">
+      <DependentUpon>AnonymityPresentation.xaml</DependentUpon>
+    </Compile>
     <Compile Include="AnonymitySettings.cs" />
+    <Compile Include="Helper\CollectionUpdate.cs" />
+    <Compile Include="Helper\EquivalenceClassColor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -106,6 +111,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="userdoc.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="AnonymityPresentation.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
