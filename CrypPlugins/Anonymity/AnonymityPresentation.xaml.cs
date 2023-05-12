@@ -104,6 +104,7 @@ namespace CrypTool.Plugins.Anonymity
                 comboBox.Items.Add("Identifier");
                 comboBox.Items.Add("Quasi-Identifier");
                 comboBox.Items.Add("Sensitive Attribute");
+                comboBox.SelectedValue = "Quasi-Identifier";
                 comboBox.SelectionChanged += ComboBoxSelectionQuasiIdentifier;
                 comboBox.Margin = new Thickness(5);
                 headerlabels.Children.Add(label);
@@ -117,7 +118,7 @@ namespace CrypTool.Plugins.Anonymity
             foreach (string combo in headers)
             {
                 ComboBox comboBox = new ComboBox();
-                comboBox.Visibility = Visibility.Hidden;
+                comboBox.Visibility = Visibility.Visible;
                 comboBox.Items.Add("Categoric");
                 comboBox.Items.Add("Numeric");
                 comboBox.Margin = new Thickness(0, 33.5, 0, 0);
@@ -126,6 +127,7 @@ namespace CrypTool.Plugins.Anonymity
                 hiddenComboboxes.Add(comboBox);
             }
 
+          
 
 
 
@@ -137,6 +139,9 @@ namespace CrypTool.Plugins.Anonymity
 
             }
 
+
+            // set default data type values for comboboxes
+            SetDataTypeForColumns(hiddenComboboxes, dt);
 
             // create apply button
             Button applyButton = new Button();
@@ -171,6 +176,36 @@ namespace CrypTool.Plugins.Anonymity
             resetButton.Click += ResetButton_Click;
 
         }
+
+
+        // set default data type values for comboboxes to determine if they are categoric or numeric
+        public void SetDataTypeForColumns(List<ComboBox> hiddenComboboxes, DataTable dt)
+        {
+            for (int index = 0; index < hiddenComboboxes.Count; index++)
+            {
+                List<string> columnValues = new List<string>();
+
+                // Start from row 1 to skip the headers
+                for (int row = 1; row < dt.Rows.Count; row++) 
+                {
+                    string value = dt.Rows[row][index].ToString();
+                    columnValues.Add(value);
+                }
+                bool isNumeric = columnValues.All(value => double.TryParse(value, out _));
+                string defaultValue = isNumeric ? "Numeric" : "Categoric";
+                hiddenComboboxes[index].SelectedItem = defaultValue;
+            }
+        }
+
+
+
+
+
+
+
+
+
+
 
 
         // reset button functionality, presentation is reseted to the state before any action is done by the user
@@ -333,7 +368,7 @@ namespace CrypTool.Plugins.Anonymity
                     // group and degroup buttons
                     var btn = new Button { Content = "Group", Background = Brushes.SkyBlue, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
                     btn.Click += (s, evt) => NumericGroupBtnClick(s, evt, canvas, index, rangeComboBox);
-                    var debtn = new Button { Content = "Degroup", Background = Brushes.MediumPurple, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
+                    var debtn = new Button { Content = "Reset", Background = Brushes.MediumPurple, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
                     debtn.Click += (s, evt) => NumericDegroupBtnClick(s, evt, btn, rangeComboBox, canvas, index);
                     rangeStackPanel.Children.Add(btn);
                     rangeStackPanel.Children.Add(debtn);
@@ -691,7 +726,7 @@ namespace CrypTool.Plugins.Anonymity
                     }
                     canvas.Width = margin + 100;
                     var btn = new Button { Content = "Group", Background = Brushes.SkyBlue, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
-                    var btn2 = new Button { Content = "Degroup", Background = Brushes.MediumPurple, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
+                    var btn2 = new Button { Content = "Reset", Background = Brushes.MediumPurple, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
                     btn.Click += (s, e) => CategoricGroupBtnClick(s, e, index);
                     btn2.Click += (s, e) => CategoricDeGroupBtnClick(s, e, index);
                     var stackPanel = new StackPanel { Orientation = Orientation.Horizontal };
