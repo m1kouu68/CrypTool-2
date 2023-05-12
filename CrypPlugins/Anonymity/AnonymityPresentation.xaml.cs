@@ -198,16 +198,6 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
-
-
-
-
-
-
-
-
-
-
         // reset button functionality, presentation is reseted to the state before any action is done by the user
         private void ResetButton_Click(object sender, RoutedEventArgs e)
         {
@@ -369,7 +359,7 @@ namespace CrypTool.Plugins.Anonymity
                     var btn = new Button { Content = "Group", Background = Brushes.SkyBlue, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
                     btn.Click += (s, evt) => NumericGroupBtnClick(s, evt, canvas, index, rangeComboBox);
                     var debtn = new Button { Content = "Reset", Background = Brushes.MediumPurple, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
-                    debtn.Click += (s, evt) => NumericDegroupBtnClick(s, evt, btn, rangeComboBox, canvas, index);
+                    debtn.Click += (s, evt) => NumericResetBtnClick(s, evt, btn, rangeComboBox, canvas, index);
                     rangeStackPanel.Children.Add(btn);
                     rangeStackPanel.Children.Add(debtn);
 
@@ -410,7 +400,7 @@ namespace CrypTool.Plugins.Anonymity
 
 
         // degroup functionality for numeric items 
-        private void NumericDegroupBtnClick(object s, RoutedEventArgs evt, Button button, ComboBox comboBox, Canvas canvas, int columnIndex)
+        private void NumericResetBtnClick(object s, RoutedEventArgs evt, Button button, ComboBox comboBox, Canvas canvas, int columnIndex)
         {
 
 
@@ -728,7 +718,7 @@ namespace CrypTool.Plugins.Anonymity
                     var btn = new Button { Content = "Group", Background = Brushes.SkyBlue, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
                     var btn2 = new Button { Content = "Reset", Background = Brushes.MediumPurple, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
                     btn.Click += (s, e) => CategoricGroupBtnClick(s, e, index);
-                    btn2.Click += (s, e) => CategoricDeGroupBtnClick(s, e, index);
+                    btn2.Click += (s, e) => CategoricResetBtnClick(s, e, index);
                     var stackPanel = new StackPanel { Orientation = Orientation.Horizontal };
                     stackPanel.Children.Add(canvas);
                     stackPanel.Children.Add(btn);
@@ -743,7 +733,7 @@ namespace CrypTool.Plugins.Anonymity
 
 
         // degroup functionality for categoric items
-        private void CategoricDeGroupBtnClick(object sender, RoutedEventArgs e, int columnIndex)
+        private void CategoricResetBtnClick(object sender, RoutedEventArgs e, int columnIndex)
         {
             var btn = sender as Button;
             var container = btn.Parent as StackPanel;
