@@ -708,6 +708,8 @@ namespace CrypTool.Plugins.Anonymity
                                 element.ReleaseMouseCapture();
                                 isDragging = false;
                             }
+
+                            UpdateCategoricColumn(canvas, index);
                         };
                         Canvas.SetLeft(border, margin);
                         Canvas.SetTop(border, 0);
@@ -715,13 +717,14 @@ namespace CrypTool.Plugins.Anonymity
                         margin += 100;
                     }
                     canvas.Width = margin + 100;
-                    var btn = new Button { Content = "Group", Background = Brushes.SkyBlue, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
+                  //  var btn = new Button { Content = "Group", Background = Brushes.SkyBlue, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
                     var btn2 = new Button { Content = "Reset", Background = Brushes.MediumPurple, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
-                    btn.Click += (s, e) => CategoricGroupBtnClick(s, e, index);
+                
+                   // btn.Click += (s, e) => CategoricGroupBtnClick(s, e, index);
                     btn2.Click += (s, e) => CategoricResetBtnClick(s, e, index);
                     var stackPanel = new StackPanel { Orientation = Orientation.Horizontal };
                     stackPanel.Children.Add(canvas);
-                    stackPanel.Children.Add(btn);
+                    //stackPanel.Children.Add(btn);
                     stackPanel.Children.Add(btn2);
                     stackPanel.Children.Add(new ListView { VerticalAlignment = VerticalAlignment.Center });
                     functionContainer.Children.Add(textblock);
@@ -732,7 +735,82 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
-        // degroup functionality for categoric items
+
+        private void UpdateCategoricColumn(Canvas canvas, int columnIndex)
+        {
+            var groups = new List<List<string>>();
+            DataTable init = initialTable.Copy();
+
+            // loop over canvas children and find intersecting
+            for (int i = 0; i < canvas.Children.Count; i++)
+            {
+                var border1 = canvas.Children[i] as Border;
+                var currentGroup = new List<string>();
+                currentGroup.Add((string)border1.Tag);
+
+                for (int j = 0; j < canvas.Children.Count; j++) 
+                {
+                    if (i == j) continue; 
+
+                    var border2 = canvas.Children[j] as Border;
+
+                    var point1 = border1.TranslatePoint(new Point(0, 0), canvas);
+                    var point2 = border2.TranslatePoint(new Point(0, 0), canvas);
+
+                    Rect rect1 = new Rect(point1.X, point1.Y, border1.RenderSize.Width, border1.RenderSize.Height);
+                    Rect rect2 = new Rect(point2.X, point2.Y, border2.RenderSize.Width, border2.RenderSize.Height);
+                    if (rect1.IntersectsWith(rect2))
+                    {
+                        currentGroup.Add((string)border2.Tag);
+                    }
+                }
+
+                if (currentGroup.Count > 1)
+                {
+                    bool groupFound = false;
+                    foreach (var group in groups)
+                    {
+                        if (currentGroup.Any(b => group.Contains(b)))
+                        {
+                            group.AddRange(currentGroup.Except(group));
+                            groupFound = true;
+                            break;
+                        }
+                    }
+                    if (!groupFound)
+                    {
+                        groups.Add(currentGroup);
+                    }
+                }
+            }
+
+            var rows = table.Items.Cast<DataRowView>().ToList();
+
+            for (int i = 0; i < rows.Count; ++i)
+            {
+                rows[i].Row[columnIndex] = init.Rows[i][columnIndex];
+            }
+            if (groups.Count > 0)
+            {
+                foreach (var group in groups)
+                {
+                    var groupValue = string.Join(" | ", group);
+                    foreach (var row in rows)
+                    {
+                        var cellValue = row.Row[columnIndex].ToString();
+                        if (group.Contains(cellValue))
+                        {
+                            row.Row[columnIndex] = groupValue;
+                        }
+                    }
+                }
+            }
+            CalculateKValue();
+        }
+
+
+
+        // reset functionality for categoric items
         private void CategoricResetBtnClick(object sender, RoutedEventArgs e, int columnIndex)
         {
             var btn = sender as Button;
@@ -742,9 +820,9 @@ namespace CrypTool.Plugins.Anonymity
             groupBtn.IsEnabled = true;
             canvas.Children.Clear();
             DataTable currentTable = (table.ItemsSource as DataView).ToTable();
-
             for (int rowIndex = 0; rowIndex < initialTable.Rows.Count; rowIndex++)
             {
+                
                 currentTable.Rows[rowIndex][columnIndex] = initialTable.Rows[rowIndex][columnIndex];
             }
 
@@ -776,6 +854,7 @@ namespace CrypTool.Plugins.Anonymity
                         isDragging = true;
                         startPoint = ev.GetPosition(canvas);
                     }
+
                 };
 
                 border.MouseMove += (senderObject, ev) =>
@@ -805,6 +884,8 @@ namespace CrypTool.Plugins.Anonymity
                         element.ReleaseMouseCapture();
                         isDragging = false;
                     }
+
+                    UpdateCategoricColumn(canvas, columnIndex);
                 };
                 Canvas.SetLeft(border, margin);
                 Canvas.SetTop(border, 0);
@@ -816,6 +897,9 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
+
+        /*
+         * Obsolete, no group button for categoric items, will be removed
         // categoric group functionality, intersecting elements in canvas are grouped together
         private void CategoricGroupBtnClick(object sender, RoutedEventArgs e, int index)
         {
@@ -829,22 +913,22 @@ namespace CrypTool.Plugins.Anonymity
             // loop over canvas children and find íntersecting
             for (int i = 0; i < canvas.Children.Count; ++i)
             {
-                var item1 = canvas.Children[i] as Border;
+                var border1 = canvas.Children[i] as Border;
                 var currentGroup = new List<string>();
-                currentGroup.Add((string)item1.Tag);
+                currentGroup.Add((string)border1.Tag);
 
                 for (int j = i + 1; j < canvas.Children.Count; ++j)
                 {
-                    var item2 = canvas.Children[j] as Border;
+                    var border2 = canvas.Children[j] as Border;
 
-                    var point1 = item1.TranslatePoint(new Point(0, 0), canvas);
-                    var point2 = item2.TranslatePoint(new Point(0, 0), canvas);
+                    var point1 = border1.TranslatePoint(new Point(0, 0), canvas);
+                    var point2 = border2.TranslatePoint(new Point(0, 0), canvas);
 
-                    Rect rect1 = new Rect(point1.X, point1.Y, item1.RenderSize.Width, item1.RenderSize.Height);
-                    Rect rect2 = new Rect(point2.X, point2.Y, item2.RenderSize.Width, item2.RenderSize.Height);
+                    Rect rect1 = new Rect(point1.X, point1.Y, border1.RenderSize.Width, border1.RenderSize.Height);
+                    Rect rect2 = new Rect(point2.X, point2.Y, border2.RenderSize.Width, border2.RenderSize.Height);
                     if (rect1.IntersectsWith(rect2))
                     {
-                        currentGroup.Add((string)item2.Tag);
+                        currentGroup.Add((string)border2.Tag);
                     }
                 }
                 if (currentGroup.Count > 1)
@@ -904,6 +988,10 @@ namespace CrypTool.Plugins.Anonymity
             }
             CalculateKValue();
         }
+
+        */
+
+
 
 
         // check if all comboboxes are selected
