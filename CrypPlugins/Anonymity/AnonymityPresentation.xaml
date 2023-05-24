@@ -38,25 +38,25 @@
                     Foreground="White" />
                 </StackPanel>
             </Border>
-
-            <DataGrid
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Grid.Row="1" Grid.Column="0">
+                <DataGrid
                 x:Name="table"
-                Grid.Row="1"
-                Grid.Column="0"
                 Margin="10"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Top"
+                FontSize="16"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
                 IsReadOnly="True">
-                <DataGrid.RowStyle>
-                    <Style TargetType="DataGridRow">
-                        <Setter Property="Background">
-                            <Setter.Value>
-                                <Binding Path="GroupID" Converter="{StaticResource EquivalenceClassColor}" />
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </DataGrid.RowStyle>
-            </DataGrid>
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <Binding Path="GroupID" Converter="{StaticResource EquivalenceClassColor}" />
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </DataGrid.RowStyle>
+                </DataGrid>
+            </ScrollViewer>
             <StackPanel Orientation="Horizontal" Grid.Column="1" Grid.Row="1" >
                 <StackPanel
             x:Name="headerlabels"
@@ -93,9 +93,24 @@
                Grid.RowSpan="2">
                 </StackPanel>
             </ScrollViewer>
-            <Grid Grid.Column="1" Grid.Row="2">
+            <Grid Grid.Column="0" Grid.Row="0">
                 <Label x:Name="kLabel"   HorizontalAlignment="Center" VerticalAlignment="Center">K-Anonymity:</Label>
             </Grid>
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"  Grid.Row="2" Grid.Column="1">
+                <StackPanel
+                x:Name="numericContainer"
+                Margin="10"
+                 HorizontalAlignment="Stretch"
+                ScrollViewer.CanContentScroll="True"
+               Grid.Row="2"
+               Grid.RowSpan="2">
+                </StackPanel>
+
+
+
+            </ScrollViewer>
+            
+            
         </Grid>
     </ScrollViewer>
 </UserControl>

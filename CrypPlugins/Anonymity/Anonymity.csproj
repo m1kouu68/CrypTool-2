@@ -81,7 +81,6 @@
       <DependentUpon>AnonymityPresentation.xaml</DependentUpon>
     </Compile>
     <Compile Include="AnonymitySettings.cs" />
-    <Compile Include="Helper\CollectionUpdate.cs" />
     <Compile Include="Helper\EquivalenceClassColor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
