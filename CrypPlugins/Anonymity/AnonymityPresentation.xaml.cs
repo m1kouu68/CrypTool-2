@@ -14,6 +14,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Text.RegularExpressions;
 using System.Windows.Shapes;
+using System.Threading;
+using System.Windows.Threading;
 
 namespace CrypTool.Plugins.Anonymity
 {
@@ -22,6 +24,8 @@ namespace CrypTool.Plugins.Anonymity
     /// </summary>
     public partial class AnonymityPresentation : UserControl
     {
+        public delegate void DataTableChangedEventHandler(object sender, EventArgs e);
+        public event DataTableChangedEventHandler DataTableChanged;
 
         private List<ComboBox> hiddenComboboxes = new List<ComboBox>();
         private List<ComboBox> labelComboboxes = new List<ComboBox>();
@@ -30,8 +34,7 @@ namespace CrypTool.Plugins.Anonymity
         private DataTable initialTable;
         private List<Button> _buttonList = new List<Button>();
         private List<string> _headerList = new List<string>();
-        private DataTable dt;
-        
+        private  DataTable dt;
         private string[] headers;
 
 
@@ -64,12 +67,6 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-            foreach (StackPanel child in categoricNumeric.Children.OfType<StackPanel>())
-            {
-                child.Children.Clear();
-            }
-
-            categoricNumeric.Children.Clear();
 
         }
 
@@ -97,42 +94,44 @@ namespace CrypTool.Plugins.Anonymity
             }
 
 
-
-            // create labels and combobox according to the amount of columns
-            foreach (string headervalue in headers)
+            for (int i = 0; i < headers.Length; i++)
             {
-                Label label = new Label();
-                label.Content = headervalue;
-                _headerList.Add(headervalue);
-                ComboBox comboBox = new ComboBox();
-                comboBox.Items.Add("Identifier");
-                comboBox.Items.Add("Quasi-Identifier");
-                comboBox.Items.Add("Sensitive Attribute");
-                comboBox.SelectedValue = "Quasi-Identifier";
-                comboBox.SelectionChanged += ComboBoxSelectionQuasiIdentifier;
-                comboBox.SelectionChanged += HandleItemCreation;
-                comboBox.Margin = new Thickness(5);
-                headerlabels.Children.Add(label);
-                labelComboboxes.Add(comboBox);
-                headerlabels.Children.Add(comboBox);
+                Grid grid = new Grid();
+                grid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+                grid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+                grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
 
+                Label label = new Label() { Content = headers[i] };
+                Grid.SetRow(label, 0);
+                Grid.SetColumn(label, 0);
+                grid.Children.Add(label);
+
+                ComboBox box1 = new ComboBox();
+                box1.Items.Add("Identifier");
+                box1.Items.Add("Quasi-Identifier");
+                box1.Items.Add("Sensitive Attribute");
+                box1.SelectedValue = "Quasi-Identifier";
+                box1.Margin = new Thickness(5);
+                box1.SelectionChanged += ComboBoxSelectionQuasiIdentifier;
+                box1.SelectionChanged += HandleItemCreation;
+                Grid.SetRow(box1, 1);
+                Grid.SetColumn(box1, 0);
+                grid.Children.Add(box1);
+                labelComboboxes.Add(box1);
+
+                ComboBox box2 = new ComboBox();
+                box2.Items.Add("Categoric");
+                box2.Items.Add("Numeric");
+                box2.Margin = new Thickness(5);
+                box2.IsEnabled = false;
+                Grid.SetRow(box2, 1); 
+                Grid.SetColumn(box2, 1); 
+                grid.Children.Add(box2);
+                hiddenComboboxes.Add(box2);
+
+                headerlabels.Children.Add(grid);
             }
-
-
-            // create comboboxes with the items categoric and numeric
-            foreach (string combo in headers)
-            {
-                ComboBox comboBox = new ComboBox();
-                comboBox.Visibility = Visibility.Visible;
-                comboBox.Items.Add("Categoric");
-                comboBox.Items.Add("Numeric");
-                comboBox.Margin = new Thickness(0, 33.5, 0, 0);
-                comboBox.Width = 100;
-                categoricNumeric.Children.Add(comboBox);
-                hiddenComboboxes.Add(comboBox);
-            }
-
-          
 
 
 
@@ -182,6 +181,17 @@ namespace CrypTool.Plugins.Anonymity
             
 
         }
+
+
+
+
+        public virtual void OnDataTableChanged()
+        {
+            DataTableChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+
+
 
         private void DataGrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
         {
@@ -429,6 +439,8 @@ namespace CrypTool.Plugins.Anonymity
 
                 }
             }
+
+    
         }
 
 
@@ -442,6 +454,9 @@ namespace CrypTool.Plugins.Anonymity
 
 
             HandleGroupingLogic(rect, canvas, columnIndex);
+
+    
+
         }
 
         private void HandleRectangleColoring(Rectangle rect, Canvas canvas)
@@ -728,6 +743,8 @@ namespace CrypTool.Plugins.Anonymity
                     }
                 }
             }
+
+            CalculateKValue();
         }
 
 
@@ -753,6 +770,8 @@ namespace CrypTool.Plugins.Anonymity
                     }
                 }
             }
+
+            CalculateKValue();
         }
 
 
@@ -870,6 +889,8 @@ namespace CrypTool.Plugins.Anonymity
 
 
             }
+
+            CalculateKValue();
 
         }
 
@@ -1074,6 +1095,8 @@ namespace CrypTool.Plugins.Anonymity
                     }
                 }
             }
+
+            CalculateKValue();
         }
 
 
@@ -1211,8 +1234,9 @@ namespace CrypTool.Plugins.Anonymity
         // calculation of k for k-Anonymity
         private void CalculateKValue()
         {
-           
-          
+
+   
+
             // Find the column indexes with "Quasi-Identifier" selected
             List<int> quasiIdentifierIndexes = new List<int>();
             for (int i = 0; i < labelComboboxes.Count; i++)
@@ -1231,41 +1255,46 @@ namespace CrypTool.Plugins.Anonymity
 
             kLabel.Content = minGroupSize.ToString() + " Anonymity";
 
-            DataTable newTable = dt.Clone();
+                DataTable newTable = dt.Clone();
 
-            // add a column groupID for the equivalence classes in the datatable, these are used to assign a color
-            if (!newTable.Columns.Contains("GroupID"))
-            {
-                newTable.Columns.Add("GroupID", typeof(int));
-            }
+                if (!newTable.Columns.Contains("GroupID"))
+                {
+                    newTable.Columns.Add("GroupID", typeof(int));
+                }
 
-            int groupID = 0;
-            foreach (var group in groupedRows)
+            if (minGroupSize == 1)
             {
-                foreach (var row in group)
+                foreach (DataRow row in dt.Rows)
                 {
                     DataRow newRow = newTable.NewRow();
                     newRow.ItemArray = row.ItemArray;
-                    newRow["GroupID"] = groupID;
+                    newRow["GroupID"] = -1; 
                     newTable.Rows.Add(newRow);
                 }
-                groupID++;
             }
+            else
+            {
+                int groupID = 0;
+                foreach (var group in groupedRows)
+                {
+                    foreach (var row in group)
+                    {
+                        DataRow newRow = newTable.NewRow();
+                        newRow.ItemArray = row.ItemArray;
+                        newRow["GroupID"] = groupID;
+                        newTable.Rows.Add(newRow);
+                    }
+                    groupID++;
 
-            dt = newTable;
-            table.ItemsSource = dt.DefaultView;
-            ColumnVisibility();
-
-
-            
+                }
+            }
+                dt = newTable;
+                table.ItemsSource = dt.DefaultView;
+                ColumnVisibility();
+            OnDataTableChanged();
         }
 
-
-
-
-
-
-
     }
+
 
 }

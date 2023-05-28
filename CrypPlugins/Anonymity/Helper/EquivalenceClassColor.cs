@@ -12,26 +12,31 @@ namespace CrypTool.Plugins.Anonymity
     public class EquivalenceClassColor : IValueConverter
     {
 
+
+
+
+
         private readonly List<Brush> _colors = new List<Brush>
     {
-        Brushes.LightBlue,
+   
+            Brushes.LightBlue,
         Brushes.LightGreen,
-        Brushes.LightPink,
-        Brushes.LightGreen,
-        Brushes.LightSkyBlue,
-        Brushes.LightYellow
+ 
     };
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value == null)
+
+            if (value == null || (int)value == -1)  // Check if value is null or 0
                 return Brushes.Transparent;
 
 
-            // get the index of the color in the listth
-            int groupID = (int)value;
-            return _colors[groupID % _colors.Count];
-        }
+                // get the index of the color in the listth
+                int groupID = (int)value;
+                return _colors[groupID % _colors.Count];
+
+            
+            }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {

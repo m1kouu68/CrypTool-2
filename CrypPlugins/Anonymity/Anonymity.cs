@@ -18,7 +18,9 @@ using CrypTool.PluginBase.Miscellaneous;
 using System;
 using System.ComponentModel;
 using System.Data;
+using System.Text;
 using System.Threading;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 
@@ -30,7 +32,7 @@ namespace CrypTool.Plugins.Anonymity
     [Author("Mikail Sarier", "mikail.sarier@students.uni-mannheim.de", "Universität Mannheim", "")]
     // HOWTO: Change plugin caption (title to appear in CT2) and tooltip.
     // You can (and should) provide a user documentation as XML file and an own icon.
-    [PluginInfo("K-Anonymity", "Applies k-Anonymity to DataSet", "Anonymity/userdoc.xml", new[] { "CrypWin/images/default.png" })]
+    [PluginInfo("Anonymity", "Applies Anonymity methods to DataSet", "Anonymity/userdoc.xml", new[] { "CrypWin/images/default.png" })]
     // HOWTO: Change category to one that fits to your plugin. Multiple categories are allowed.
     [ComponentCategory(ComponentCategory.CiphersClassic)]
     public class Anonymity : ICrypComponent
@@ -41,6 +43,7 @@ namespace CrypTool.Plugins.Anonymity
         public string _output;
         private readonly AnonymitySettings _settings = new AnonymitySettings();
         private AnonymityPresentation _presentation = new AnonymityPresentation();
+        
 
 
         #endregion
@@ -64,6 +67,29 @@ namespace CrypTool.Plugins.Anonymity
                 OnPropertyChanged("InputCSV");
             }
         }
+
+
+
+
+        [PropertyInfo(Direction.OutputData, "Output Data", "Anonymized DataSet")]
+        public  string OutputData
+        {
+            get
+            {
+                return _output;
+            }
+            set
+            {
+                _output = value;
+                OnPropertyChanged("OutputData");
+
+            }
+        }
+
+
+
+
+
 
         /// <summary>
         /// HOWTO: Output interface to write the output data.
@@ -96,6 +122,9 @@ namespace CrypTool.Plugins.Anonymity
         /// </summary>
         public void PreExecution()
         {
+
+
+           
         }
 
         public void Execute()
@@ -108,19 +137,21 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-
             try
             {
 
+               
                 string rowSeperator = ProcessEscapeSymbols(_settings.RowSeparator);
                 string columnSeperator = ProcessEscapeSymbols(_settings.ColumnSeparator);
+                OutputData = _csv;
 
                 Presentation.Dispatcher.Invoke(DispatcherPriority.Normal, (SendOrPostCallback)delegate
                 {
 
                     _presentation.ClearPresentation();
-                    _presentation.CreateDataTable(_csv, rowSeperator, columnSeperator);
-
+                    _presentation.CreateDataTable(_csv, rowSeperator, columnSeperator);    
+                    _presentation.DataTableChanged += Presentation_DataTableChanged;
+                
 
                 }, null);
 
@@ -145,6 +176,57 @@ namespace CrypTool.Plugins.Anonymity
             // HOWTO: Make sure the progress bar is at maximum when your Execute() finished successfully.
             ProgressChanged(1, 1);
         }
+
+
+
+
+
+
+        private void Presentation_DataTableChanged(object sender, EventArgs e)
+        {
+            var dataGrid = _presentation.table;
+
+            StringBuilder csv = new StringBuilder();
+
+  
+            foreach (DataGridColumn column in dataGrid.Columns)
+            {
+     
+                if (column.Visibility == Visibility.Visible)
+                {
+                    csv.Append(column.Header);
+                    csv.Append(",");
+                }
+            }
+
+            csv.AppendLine();
+
+            foreach (DataRowView rowView in dataGrid.Items)
+            {
+                DataRow row = rowView.Row;
+                foreach (DataColumn column in row.Table.Columns)
+                {
+          
+                    if (dataGrid.Columns[column.Ordinal].Visibility == Visibility.Visible)
+                    {
+                        csv.Append(row[column.ColumnName]);
+                        csv.Append(",");
+                    }
+                }
+
+                csv.AppendLine();
+            }
+
+            OutputData = csv.ToString();
+        }
+
+
+
+
+
+
+        
+
 
 
         private string ProcessEscapeSymbols(string p)
@@ -226,6 +308,13 @@ namespace CrypTool.Plugins.Anonymity
         {
             EventsHelper.ProgressChanged(OnPluginProgressChanged, this, new PluginProgressEventArgs(value, max));
         }
+
+
+
+   
+
+
+
 
         #endregion
     }

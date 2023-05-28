@@ -75,13 +75,7 @@
 
 
                 </StackPanel>
-                <StackPanel  x:Name="categoricNumeric"   Grid.Column="1" Grid.Row="1" Margin="20">
-                    <TextBlock
-                FontSize="18"
-                FontWeight="DemiBold"
-                Foreground="Black"
-                Text=""/>
-                </StackPanel>
+                
             </StackPanel>
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"  Grid.Row="2">
                 <StackPanel
@@ -94,7 +88,9 @@
                 </StackPanel>
             </ScrollViewer>
             <Grid Grid.Column="0" Grid.Row="0">
-                <Label x:Name="kLabel"   HorizontalAlignment="Center" VerticalAlignment="Center">K-Anonymity:</Label>
+         
+                    <Label x:Name="kLabel"   HorizontalAlignment="Center" VerticalAlignment="Center">K-Anonymity:</Label>
+      
             </Grid>
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"  Grid.Row="2" Grid.Column="1">
                 <StackPanel
@@ -109,8 +105,7 @@
 
 
             </ScrollViewer>
-            
-            
+           
         </Grid>
     </ScrollViewer>
 </UserControl>
