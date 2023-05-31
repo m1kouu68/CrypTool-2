@@ -34,9 +34,9 @@ namespace CrypTool.Plugins.Anonymity
         private DataTable initialTable;
         private List<Button> _buttonList = new List<Button>();
         private List<string> _headerList = new List<string>();
-        private  DataTable dt;
+        private DataTable dt;
         private string[] headers;
-
+        private ViewModel view;
 
 
 
@@ -45,6 +45,8 @@ namespace CrypTool.Plugins.Anonymity
         public AnonymityPresentation()
         {
             InitializeComponent();
+            this.view = new ViewModel();
+            this.DataContext = this.view;
         }
 
 
@@ -74,7 +76,7 @@ namespace CrypTool.Plugins.Anonymity
         public void CreateDataTable(string InputCsv, string RowSeperator, string ColumnSeperator)
         {
 
-             dt = new DataTable();
+            dt = new DataTable();
 
             // split the input string into an array of lines
 
@@ -82,7 +84,7 @@ namespace CrypTool.Plugins.Anonymity
 
 
             // split the first line into an array of headers
-             headers = lines[0].Split(ColumnSeperator.ToArray(), StringSplitOptions.RemoveEmptyEntries);
+            headers = lines[0].Split(ColumnSeperator.ToArray(), StringSplitOptions.RemoveEmptyEntries);
 
 
 
@@ -125,8 +127,8 @@ namespace CrypTool.Plugins.Anonymity
                 box2.Items.Add("Numeric");
                 box2.Margin = new Thickness(5);
                 box2.IsEnabled = false;
-                Grid.SetRow(box2, 1); 
-                Grid.SetColumn(box2, 1); 
+                Grid.SetRow(box2, 1);
+                Grid.SetColumn(box2, 1);
                 grid.Children.Add(box2);
                 hiddenComboboxes.Add(box2);
 
@@ -146,10 +148,10 @@ namespace CrypTool.Plugins.Anonymity
 
             // set default data type values for comboboxes
             SetDataTypeForColumns(hiddenComboboxes, dt);
- 
 
-         
-           
+
+
+
 
 
 
@@ -170,15 +172,15 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-            // reset button click handler is added
-            resetButton.Click += ResetButton_Click;
+       
+         
 
 
 
             GenerateNumericItems();
             GenerateCategoricItems();
-         
-            
+
+
 
         }
 
@@ -199,11 +201,19 @@ namespace CrypTool.Plugins.Anonymity
             {
                 e.Column.Visibility = Visibility.Collapsed;
             }
+            else if (e.PropertyName == "IsGroupStart")
+            {
+                e.Column.Visibility = Visibility.Collapsed;
+            }
+            else if (e.PropertyName == "IsGroupEnd")
+            {
+                e.Column.Visibility = Visibility.Collapsed;
+            }
         }
 
         private void HandleItemCreation(object sender, SelectionChangedEventArgs e)
         {
-            
+
             ComboBox combo = sender as ComboBox;
             DataTable init = initialTable.Copy();
             var rows = table.Items.Cast<DataRowView>().ToList();
@@ -218,11 +228,11 @@ namespace CrypTool.Plugins.Anonymity
                     }
                     RemoveSpecificCategoricItem(headers[i]);
                     ColumnVisibility();
-              
-   
+
+
 
                 }
-                else if(labelComboboxes[i] == combo && combo.SelectedItem.ToString() != "Quasi-Identifier" && hiddenComboboxes[i].SelectedItem.ToString() == "Numeric")
+                else if (labelComboboxes[i] == combo && combo.SelectedItem.ToString() != "Quasi-Identifier" && hiddenComboboxes[i].SelectedItem.ToString() == "Numeric")
                 {
                     for (int j = 0; j < rows.Count; j++)
                     {
@@ -256,8 +266,8 @@ namespace CrypTool.Plugins.Anonymity
                     ColumnVisibility();
 
                 }
-            }  
-         
+            }
+
         }
 
         // set default data type values for comboboxes to determine if they are categoric or numeric
@@ -267,8 +277,8 @@ namespace CrypTool.Plugins.Anonymity
             {
                 List<string> columnValues = new List<string>();
 
-       
-                for (int row = 1; row < dt.Rows.Count; row++) 
+
+                for (int row = 1; row < dt.Rows.Count; row++)
                 {
                     string value = dt.Rows[row][index].ToString();
                     columnValues.Add(value);
@@ -304,7 +314,7 @@ namespace CrypTool.Plugins.Anonymity
             table.ItemsSource = init.DefaultView;
         }
 
-     
+
 
 
 
@@ -328,7 +338,7 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
-    
+
 
         // numeric items created, according to index of hiddencomboboxes the corresponding column values are used
         private void GenerateNumericItems()
@@ -336,11 +346,11 @@ namespace CrypTool.Plugins.Anonymity
 
             for (int i = 0; i < hiddenComboboxes.Count(); i++)
             {
-            
+
 
                 if (hiddenComboboxes[i].SelectedItem != null && hiddenComboboxes[i].SelectedItem.ToString() == "Numeric" && hiddenComboboxes[i].Visibility == Visibility.Visible)
-                    {
-                        int index = i;
+                {
+                    int index = i;
 
 
                     // get the distinct values of column and order ascending
@@ -348,99 +358,99 @@ namespace CrypTool.Plugins.Anonymity
                                         .Select(row => row.Row.ItemArray[i].ToString())
                                         .Distinct().ToList();
 
-                    
-                    var canvas = new Canvas();
-                        canvas.Margin = new Thickness(0, 1, 0, 0);
-                        var margin = 5;
-                        canvas.Background = Brushes.Gray;
-                        canvas.Height = 55;
-                        canvas.HorizontalAlignment = HorizontalAlignment.Left;
-                        canvas.VerticalAlignment = VerticalAlignment.Top;
-                 
-                    distinctValues.Sort((a, b) => int.Parse(a).CompareTo(int.Parse(b)));
-                   
-                    var textblock = new TextBlock();
-                        textblock.FontWeight = FontWeights.DemiBold;
-                        textblock.FontSize = 14.0;
-                        textblock.Foreground = Brushes.Black;
-                        textblock.Margin = new Thickness(0, 10, 10, 10);
-          
-                   
-                
-                    textblock.Text = "Numeric Column: " + dt.Columns[i].ColumnName;
-                        var stackPanel = new StackPanel { Orientation = Orientation.Horizontal };
-                        numericContainer.Children.Add(textblock);
 
-                   
+                    var canvas = new Canvas();
+                    canvas.Margin = new Thickness(0, 1, 0, 0);
+                    var margin = 5;
+                    canvas.Background = Brushes.Gray;
+                    canvas.Height = 55;
+                    canvas.HorizontalAlignment = HorizontalAlignment.Left;
+                    canvas.VerticalAlignment = VerticalAlignment.Top;
+
+                    distinctValues.Sort((a, b) => int.Parse(a).CompareTo(int.Parse(b)));
+
+                    var textblock = new TextBlock();
+                    textblock.FontWeight = FontWeights.DemiBold;
+                    textblock.FontSize = 14.0;
+                    textblock.Foreground = Brushes.Black;
+                    textblock.Margin = new Thickness(0, 10, 10, 10);
+
+
+
+                    textblock.Text = "Numeric Column: " + dt.Columns[i].ColumnName;
+                    var stackPanel = new StackPanel { Orientation = Orientation.Horizontal };
+                    numericContainer.Children.Add(textblock);
+
+
                     // values in the column are added to the canvas
                     for (int j = 0; j < distinctValues.Count; j++)
-                        {
-                    
+                    {
+
                         var col = distinctValues[j];
-                            var numTextblock = new TextBlock();
-                            numTextblock.FontWeight = FontWeights.DemiBold;
-                            numTextblock.FontSize = 14.0;
-                            numTextblock.Foreground = Brushes.Black;
+                        var numTextblock = new TextBlock();
+                        numTextblock.FontWeight = FontWeights.DemiBold;
+                        numTextblock.FontSize = 14.0;
+                        numTextblock.Foreground = Brushes.Black;
 
-                            numTextblock.VerticalAlignment = VerticalAlignment.Center;
-                            numTextblock.Text = col;
-                            numTextblock.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                        numTextblock.VerticalAlignment = VerticalAlignment.Center;
+                        numTextblock.Text = col;
+                        numTextblock.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 
-                            double textBlockHeight = numTextblock.DesiredSize.Height;
-                            double topMargin = (canvas.Height - textBlockHeight) / 2;
-                            Canvas.SetLeft(numTextblock, margin + 15);
-                            Canvas.SetTop(numTextblock, topMargin);
-                            canvas.Children.Add(numTextblock);
-                            margin += 50;
-
-
+                        double textBlockHeight = numTextblock.DesiredSize.Height;
+                        double topMargin = (canvas.Height - textBlockHeight) / 2;
+                        Canvas.SetLeft(numTextblock, margin + 15);
+                        Canvas.SetTop(numTextblock, topMargin);
+                        canvas.Children.Add(numTextblock);
+                        margin += 50;
 
 
-                            if (j != distinctValues.Count)
+
+
+                        if (j != distinctValues.Count)
+                        {
+                            var rectangle = new Rectangle
                             {
-                                var rectangle = new Rectangle
-                                {
-                                    Width = 3,
-                                    Height = canvas.Height,
-                                    Fill = Brushes.LightGray,
+                                Width = 3,
+                                Height = canvas.Height,
+                                Fill = Brushes.LightGray,
 
-                                };
+                            };
 
-                        
+
                             rectangle.MouseLeftButtonDown += (sender, e) => Rect_MouseLeftButtonDown(sender, e, canvas, index);
 
 
-                                Canvas.SetLeft(rectangle, margin + 10);
-                                canvas.Children.Add(rectangle);
-                                margin += 5;
+                            Canvas.SetLeft(rectangle, margin + 10);
+                            canvas.Children.Add(rectangle);
+                            margin += 5;
 
 
 
-                            }
                         }
+                    }
 
 
-                        canvas.Width = margin + 30;
-                        stackPanel.Children.Add(canvas);
+                    canvas.Width = margin + 30;
+                    stackPanel.Children.Add(canvas);
 
 
 
-                        // group and degroup buttons
-                        var btn = new Button { Content = "Inverse", Background = Brushes.SkyBlue, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
-                        var debtn = new Button { Content = "Reset", Background = Brushes.MediumPurple, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
+                    // group and degroup buttons
+                    var btn = new Button { Content = "Inverse", Background = Brushes.SkyBlue, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
+                    var debtn = new Button { Content = "Reset", Background = Brushes.MediumPurple, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
 
 
-                        stackPanel.Children.Add(btn);
-                        stackPanel.Children.Add(debtn);
+                    stackPanel.Children.Add(btn);
+                    stackPanel.Children.Add(debtn);
 
-                        numericContainer.Children.Add(stackPanel);
+                    numericContainer.Children.Add(stackPanel);
 
-                 
+
 
                 }
             }
 
-    
+
         }
 
 
@@ -449,13 +459,13 @@ namespace CrypTool.Plugins.Anonymity
         {
             var rect = sender as Rectangle;
 
-          
+
             HandleRectangleColoring(rect, canvas);
 
 
             HandleGroupingLogic(rect, canvas, columnIndex);
 
-    
+
 
         }
 
@@ -543,10 +553,10 @@ namespace CrypTool.Plugins.Anonymity
 
         private void HandleGroupingLogic(Rectangle rect, Canvas canvas, int columnIndex)
         {
-          
+
             DataTable init = initialTable.Copy();
 
-          
+
             var rows = table.Items.Cast<DataRowView>().ToList();
             var initialRows = init.AsEnumerable().ToList();
             for (int i = 0; i < rows.Count; i++)
@@ -554,14 +564,14 @@ namespace CrypTool.Plugins.Anonymity
                 rows[i][columnIndex] = initialRows[i][columnIndex];
             }
 
-     
+
             TextBlock firstTextBlock = null;
             TextBlock lastTextBlock = null;
             for (int i = 0; i < canvas.Children.Count; i++)
             {
                 var child = canvas.Children[i];
 
-         
+
                 if (child is TextBlock textBlock)
                 {
                     if (firstTextBlock == null)
@@ -571,12 +581,12 @@ namespace CrypTool.Plugins.Anonymity
                     lastTextBlock = textBlock;
                 }
 
-               
+
                 if (child is Rectangle rectangle && rectangle.Fill == Brushes.Red)
                 {
                     if (firstTextBlock != null && lastTextBlock != null)
                     {
-                   
+
                         int firstValue = int.Parse(firstTextBlock.Text);
                         int lastValue = int.Parse(lastTextBlock.Text);
                         foreach (var row in rows)
@@ -590,7 +600,7 @@ namespace CrypTool.Plugins.Anonymity
                                 }
                             }
                         }
-     
+
                         firstTextBlock = null;
                         lastTextBlock = null;
                     }
@@ -598,7 +608,7 @@ namespace CrypTool.Plugins.Anonymity
             }
 
 
-           CalculateKValue();
+            CalculateKValue();
 
         }
 
@@ -617,13 +627,13 @@ namespace CrypTool.Plugins.Anonymity
                 {
 
                     int index = i;
- 
+
 
                     // distinct values of the corresponding column in the table are taken
                     List<string> distinctValues = table.Items.Cast<DataRowView>()
                                     .Select(row => row.Row.ItemArray[i].ToString())
                                     .Distinct().ToList();
-      
+
                     var canvas = new Canvas();
                     var margin = 0.0;
                     canvas.Background = Brushes.Gray;
@@ -635,14 +645,14 @@ namespace CrypTool.Plugins.Anonymity
                     textblock.FontSize = 14.0;
                     textblock.Foreground = Brushes.Black;
                     textblock.Margin = new Thickness(0, 10, 10, 10);
-           
+
                     textblock.Text = "Categoric Column: " + dt.Columns[i].ColumnName;
-                    
+
                     // canvas is filled with the distinct values of the column
                     foreach (var col in distinctValues)
                     {
 
-                       
+
                         var border = new Border();
                         var converter = new BrushConverter();
                         var brush = (Brush)converter.ConvertFromString("#3F48CC");
@@ -653,7 +663,7 @@ namespace CrypTool.Plugins.Anonymity
                         border.Padding = new Thickness(10);
                         border.Child = new TextBlock() { Text = col, Foreground = Brushes.White, FontSize = 14 };
 
-                 
+
                         border.MouseLeftButtonDown += (sender, e) =>
                         {
                             var element = sender as UIElement;
@@ -672,7 +682,7 @@ namespace CrypTool.Plugins.Anonymity
                                 Point currentPosition = e.GetPosition(canvas);
                                 // calculate change in position
                                 double x = currentPosition.X - startPoint.X;
-                                double y= currentPosition.Y - startPoint.Y;
+                                double y = currentPosition.Y - startPoint.Y;
                                 double newX = Canvas.GetLeft(border) + x;
                                 double newY = Canvas.GetTop(border) + y;
                                 // if new position is within bounds, update position
@@ -695,10 +705,10 @@ namespace CrypTool.Plugins.Anonymity
                                 isDragging = false;
                             }
 
-                          UpdateCategoricColumn(canvas, index);
-                          
+                            UpdateCategoricColumn(canvas, index);
+
                         };
-                        
+
                         Canvas.SetLeft(border, margin);
                         Canvas.SetTop(border, 0);
                         canvas.Children.Add(border);
@@ -706,7 +716,7 @@ namespace CrypTool.Plugins.Anonymity
                     }
                     canvas.Width = margin + 100;
                     var btn2 = new Button { Content = "Reset", Background = Brushes.MediumPurple, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
-                
+
                     btn2.Click += (s, e) => CategoricResetBtnClick(s, e, index);
                     var stackPanel = new StackPanel { Orientation = Orientation.Horizontal };
                     stackPanel.Children.Add(canvas);
@@ -727,7 +737,7 @@ namespace CrypTool.Plugins.Anonymity
             var childrenCopy = functionContainer.Children.Cast<UIElement>().ToList();
             for (int i = 0; i < childrenCopy.Count; i++)
             {
- 
+
 
                 if (childrenCopy[i] is TextBlock textBlock)
                 {
@@ -736,7 +746,7 @@ namespace CrypTool.Plugins.Anonymity
                     {
                         // remove this TextBlock and the element after it
                         functionContainer.Children.Remove(textBlock);
-                        if (i < childrenCopy.Count - 1) 
+                        if (i < childrenCopy.Count - 1)
                         {
                             functionContainer.Children.Remove(childrenCopy[i + 1]);
                         }
@@ -755,7 +765,7 @@ namespace CrypTool.Plugins.Anonymity
             var childrenCopy = numericContainer.Children.Cast<UIElement>().ToList();
             for (int i = 0; i < childrenCopy.Count; i++)
             {
-    
+
 
                 if (childrenCopy[i] is TextBlock textBlock)
                 {
@@ -763,7 +773,7 @@ namespace CrypTool.Plugins.Anonymity
                     if (parts.Length > 1 && parts[1].Trim() == columnName)
                     {
                         numericContainer.Children.Remove(textBlock);
-                        if (i < childrenCopy.Count - 1)  
+                        if (i < childrenCopy.Count - 1)
                         {
                             numericContainer.Children.Remove(childrenCopy[i + 1]);
                         }
@@ -779,92 +789,92 @@ namespace CrypTool.Plugins.Anonymity
         private void GenerateSpecificNumericItem(int index)
         {
 
-       
-
-                    List<string> distinctValues = table.Items.Cast<DataRowView>()
-                                        .Select(row => row.Row.ItemArray[index].ToString())
-                                        .Distinct().ToList();
 
 
-                    var canvas = new Canvas();
-                    canvas.Margin = new Thickness(0, 1, 0, 0);
-                    var margin = 5;
-                    canvas.Background = Brushes.Gray;
-                    canvas.Height = 55;
-                    canvas.HorizontalAlignment = HorizontalAlignment.Left;
-                    canvas.VerticalAlignment = VerticalAlignment.Top;
-
-                    distinctValues.Sort((a, b) => int.Parse(a).CompareTo(int.Parse(b)));
-
-                    var textblock = new TextBlock();
-                    textblock.FontWeight = FontWeights.DemiBold;
-                    textblock.FontSize = 14.0;
-                    textblock.Foreground = Brushes.Black;
-                    textblock.Margin = new Thickness(0, 10, 10, 10);
+            List<string> distinctValues = table.Items.Cast<DataRowView>()
+                                .Select(row => row.Row.ItemArray[index].ToString())
+                                .Distinct().ToList();
 
 
+            var canvas = new Canvas();
+            canvas.Margin = new Thickness(0, 1, 0, 0);
+            var margin = 5;
+            canvas.Background = Brushes.Gray;
+            canvas.Height = 55;
+            canvas.HorizontalAlignment = HorizontalAlignment.Left;
+            canvas.VerticalAlignment = VerticalAlignment.Top;
 
-                    textblock.Text = "Numeric Column: " + dt.Columns[index].ColumnName;
-                    var stackPanel = new StackPanel { Orientation = Orientation.Horizontal };
-                 
+            distinctValues.Sort((a, b) => int.Parse(a).CompareTo(int.Parse(b)));
+
+            var textblock = new TextBlock();
+            textblock.FontWeight = FontWeights.DemiBold;
+            textblock.FontSize = 14.0;
+            textblock.Foreground = Brushes.Black;
+            textblock.Margin = new Thickness(0, 10, 10, 10);
 
 
-                    for (int j = 0; j < distinctValues.Count; j++)
+
+            textblock.Text = "Numeric Column: " + dt.Columns[index].ColumnName;
+            var stackPanel = new StackPanel { Orientation = Orientation.Horizontal };
+
+
+
+            for (int j = 0; j < distinctValues.Count; j++)
+            {
+
+                var col = distinctValues[j];
+                var numTextblock = new TextBlock();
+                numTextblock.FontWeight = FontWeights.DemiBold;
+                numTextblock.FontSize = 14.0;
+                numTextblock.Foreground = Brushes.Black;
+                numTextblock.VerticalAlignment = VerticalAlignment.Center;
+                numTextblock.Text = col;
+                numTextblock.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                double textBlockHeight = numTextblock.DesiredSize.Height;
+                double topMargin = (canvas.Height - textBlockHeight) / 2;
+                Canvas.SetLeft(numTextblock, margin + 15);
+                Canvas.SetTop(numTextblock, topMargin);
+                canvas.Children.Add(numTextblock);
+                margin += 50;
+
+                if (j != distinctValues.Count)
+                {
+                    var rectangle = new Rectangle
                     {
+                        Width = 3,
+                        Height = canvas.Height,
+                        Fill = Brushes.LightGray,
 
-                        var col = distinctValues[j];
-                        var numTextblock = new TextBlock();
-                        numTextblock.FontWeight = FontWeights.DemiBold;
-                        numTextblock.FontSize = 14.0;
-                        numTextblock.Foreground = Brushes.Black;
-                        numTextblock.VerticalAlignment = VerticalAlignment.Center;
-                        numTextblock.Text = col;
-                        numTextblock.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-                        double textBlockHeight = numTextblock.DesiredSize.Height;
-                        double topMargin = (canvas.Height - textBlockHeight) / 2;
-                        Canvas.SetLeft(numTextblock, margin + 15);
-                        Canvas.SetTop(numTextblock, topMargin);
-                        canvas.Children.Add(numTextblock);
-                        margin += 50;
-
-                        if (j != distinctValues.Count)
-                        {
-                            var rectangle = new Rectangle
-                            {
-                                Width = 3,
-                                Height = canvas.Height,
-                                Fill = Brushes.LightGray,
-
-                            };
+                    };
 
 
-                            rectangle.MouseLeftButtonDown += (sender, e) => Rect_MouseLeftButtonDown(sender, e, canvas, index);
+                    rectangle.MouseLeftButtonDown += (sender, e) => Rect_MouseLeftButtonDown(sender, e, canvas, index);
 
 
-                            Canvas.SetLeft(rectangle, margin + 10);
-                            canvas.Children.Add(rectangle);
-                            margin += 5;
+                    Canvas.SetLeft(rectangle, margin + 10);
+                    canvas.Children.Add(rectangle);
+                    margin += 5;
 
 
 
-                        }
-                    }
+                }
+            }
 
 
-                    canvas.Width = margin + 30;
-                    stackPanel.Children.Add(canvas);
+            canvas.Width = margin + 30;
+            stackPanel.Children.Add(canvas);
 
 
 
-                    // group and degroup buttons
-                    var btn = new Button { Content = "Inverse", Background = Brushes.SkyBlue, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
-                    var debtn = new Button { Content = "Reset", Background = Brushes.MediumPurple, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
+            // group and degroup buttons
+            var btn = new Button { Content = "Inverse", Background = Brushes.SkyBlue, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
+            var debtn = new Button { Content = "Reset", Background = Brushes.MediumPurple, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
 
 
-                    stackPanel.Children.Add(btn);
-                    stackPanel.Children.Add(debtn);
+            stackPanel.Children.Add(btn);
+            stackPanel.Children.Add(debtn);
 
-         
+
 
             if (index == 0)
             {
@@ -902,121 +912,120 @@ namespace CrypTool.Plugins.Anonymity
         {
 
 
-                    List<string> distinctValues = table.Items.Cast<DataRowView>()
-                                    .Select(row => row.Row.ItemArray[index].ToString())
-                                    .Distinct().ToList();
+            List<string> distinctValues = table.Items.Cast<DataRowView>()
+                            .Select(row => row.Row.ItemArray[index].ToString())
+                            .Distinct().ToList();
 
-                    var canvas = new Canvas();
-                    var margin = 0.0;
-                    canvas.Background = Brushes.Gray;
-                    canvas.Height = 55;
-                    canvas.HorizontalAlignment = HorizontalAlignment.Left;
-                    canvas.VerticalAlignment = VerticalAlignment.Top;
-                    var textblock = new TextBlock();
-                    textblock.FontWeight = FontWeights.DemiBold;
-                    textblock.FontSize = 14.0;
-                    textblock.Foreground = Brushes.Black;
-                    textblock.Margin = new Thickness(0, 10, 10, 10);
+            var canvas = new Canvas();
+            var margin = 0.0;
+            canvas.Background = Brushes.Gray;
+            canvas.Height = 55;
+            canvas.HorizontalAlignment = HorizontalAlignment.Left;
+            canvas.VerticalAlignment = VerticalAlignment.Top;
+            var textblock = new TextBlock();
+            textblock.FontWeight = FontWeights.DemiBold;
+            textblock.FontSize = 14.0;
+            textblock.Foreground = Brushes.Black;
+            textblock.Margin = new Thickness(0, 10, 10, 10);
 
-                    textblock.Text = "Categoric Column: " + dt.Columns[index].ColumnName;
+            textblock.Text = "Categoric Column: " + dt.Columns[index].ColumnName;
 
-                    foreach (var col in distinctValues)
+            foreach (var col in distinctValues)
+            {
+
+
+                var border = new Border();
+                var converter = new BrushConverter();
+                var brush = (Brush)converter.ConvertFromString("#3F48CC");
+                border.Background = brush;
+                border.Tag = col;
+                border.Cursor = Cursors.Hand;
+                border.CornerRadius = new CornerRadius(5);
+                border.Padding = new Thickness(10);
+                border.Child = new TextBlock() { Text = col, Foreground = Brushes.White, FontSize = 14 };
+
+
+                border.MouseLeftButtonDown += (sender, e) =>
+                {
+                    var element = sender as UIElement;
+                    if (element != null)
                     {
-
-
-                        var border = new Border();
-                        var converter = new BrushConverter();
-                        var brush = (Brush)converter.ConvertFromString("#3F48CC");
-                        border.Background = brush;
-                        border.Tag = col;
-                        border.Cursor = Cursors.Hand;
-                        border.CornerRadius = new CornerRadius(5);
-                        border.Padding = new Thickness(10);
-                        border.Child = new TextBlock() { Text = col, Foreground = Brushes.White, FontSize = 14 };
-
-
-                        border.MouseLeftButtonDown += (sender, e) =>
-                        {
-                            var element = sender as UIElement;
-                            if (element != null)
-                            {
-                                element.CaptureMouse();
-                                isDragging = true;
-                                startPoint = e.GetPosition(canvas);
-                            }
-                        };
-
-                        border.MouseMove += (sender, e) =>
-                        {
-                            if (isDragging)
-                            {
-                                Point currentPosition = e.GetPosition(canvas);
-                                double x = currentPosition.X - startPoint.X;
-                                double y = currentPosition.Y - startPoint.Y;
-                                double newX = Canvas.GetLeft(border) + x;
-                                double newY = Canvas.GetTop(border) + y;
-                                if (newX >= 0 && newX <= canvas.ActualWidth - border.ActualWidth && newY >= 0 && newY <= canvas.ActualHeight - border.ActualHeight)
-                                {
-
-                                    Canvas.SetLeft(border, newX);
-                                    Canvas.SetTop(border, newY);
-
-                                    startPoint = currentPosition;
-                                }
-                            }
-                        };
-                        border.MouseLeftButtonUp += (sender, e) =>
-                        {
-                            var element = sender as UIElement;
-                            if (element != null)
-                            {
-                                element.ReleaseMouseCapture();
-                                isDragging = false;
-                            }
-
-                            UpdateCategoricColumn(canvas, index);
-
-                        };
-
-                        Canvas.SetLeft(border, margin);
-                        Canvas.SetTop(border, 0);
-                        canvas.Children.Add(border);
-                        margin += 100;
+                        element.CaptureMouse();
+                        isDragging = true;
+                        startPoint = e.GetPosition(canvas);
                     }
-                    canvas.Width = margin + 100;
-                    var btn2 = new Button { Content = "Reset", Background = Brushes.MediumPurple, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
+                };
 
-                    btn2.Click += (s, e) => CategoricResetBtnClick(s, e, index);
-                    var stackPanel = new StackPanel { Orientation = Orientation.Horizontal };
-                    stackPanel.Children.Add(canvas);
-                    stackPanel.Children.Add(btn2);
-                    stackPanel.Children.Add(new ListView { VerticalAlignment = VerticalAlignment.Center });
-            Console.WriteLine("Index " + index);
-            Console.WriteLine("Count " + functionContainer.Children.Count);
+                border.MouseMove += (sender, e) =>
+                {
+                    if (isDragging)
+                    {
+                        Point currentPosition = e.GetPosition(canvas);
+                        double x = currentPosition.X - startPoint.X;
+                        double y = currentPosition.Y - startPoint.Y;
+                        double newX = Canvas.GetLeft(border) + x;
+                        double newY = Canvas.GetTop(border) + y;
+                        if (newX >= 0 && newX <= canvas.ActualWidth - border.ActualWidth && newY >= 0 && newY <= canvas.ActualHeight - border.ActualHeight)
+                        {
 
-            
-            if(index == 0)
+                            Canvas.SetLeft(border, newX);
+                            Canvas.SetTop(border, newY);
+
+                            startPoint = currentPosition;
+                        }
+                    }
+                };
+                border.MouseLeftButtonUp += (sender, e) =>
+                {
+                    var element = sender as UIElement;
+                    if (element != null)
+                    {
+                        element.ReleaseMouseCapture();
+                        isDragging = false;
+                    }
+
+                    UpdateCategoricColumn(canvas, index);
+
+                };
+
+                Canvas.SetLeft(border, margin);
+                Canvas.SetTop(border, 0);
+                canvas.Children.Add(border);
+                margin += 100;
+            }
+            canvas.Width = margin + 100;
+            var btn2 = new Button { Content = "Reset", Background = Brushes.MediumPurple, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
+
+            btn2.Click += (s, e) => CategoricResetBtnClick(s, e, index);
+            var stackPanel = new StackPanel { Orientation = Orientation.Horizontal };
+            stackPanel.Children.Add(canvas);
+            stackPanel.Children.Add(btn2);
+            stackPanel.Children.Add(new ListView { VerticalAlignment = VerticalAlignment.Center });
+
+
+
+            if (index == 0)
             {
                 functionContainer.Children.Insert(index, stackPanel);
                 functionContainer.Children.Insert(index, textblock);
             }
-            
-           
-            
+
+
+
             else if (index >= functionContainer.Children.Count)
-                     {
-         
-                        functionContainer.Children.Add(textblock);
-                         functionContainer.Children.Add(stackPanel);
-                        }
-                    else
-                    {
+            {
+
+                functionContainer.Children.Add(textblock);
+                functionContainer.Children.Add(stackPanel);
+            }
+            else
+            {
 
                 functionContainer.Children.Insert(index + 1, stackPanel);
                 functionContainer.Children.Insert(index + 1, textblock);
-           
 
-                       
+
+
             }
 
 
@@ -1038,9 +1047,9 @@ namespace CrypTool.Plugins.Anonymity
                 var currentGroup = new List<string>();
                 currentGroup.Add((string)border1.Tag);
 
-                for (int j = 0; j < canvas.Children.Count; j++) 
+                for (int j = 0; j < canvas.Children.Count; j++)
                 {
-                    if (i == j) continue; 
+                    if (i == j) continue;
 
                     var border2 = canvas.Children[j] as Border;
 
@@ -1113,7 +1122,7 @@ namespace CrypTool.Plugins.Anonymity
             DataTable currentTable = (table.ItemsSource as DataView).ToTable();
             for (int rowIndex = 0; rowIndex < initialTable.Rows.Count; rowIndex++)
             {
-                
+
                 currentTable.Rows[rowIndex][columnIndex] = initialTable.Rows[rowIndex][columnIndex];
             }
 
@@ -1159,10 +1168,10 @@ namespace CrypTool.Plugins.Anonymity
                         double newY = Canvas.GetTop(border) + y;
                         if (newX >= 0 && newX <= canvas.ActualWidth - border.ActualWidth && newY >= 0 && newY <= canvas.ActualHeight - border.ActualHeight)
                         {
-               
+
                             Canvas.SetLeft(border, newX);
                             Canvas.SetTop(border, newY);
-                   
+
                             startPoint = currentPosition;
                         }
                     }
@@ -1183,12 +1192,12 @@ namespace CrypTool.Plugins.Anonymity
                 canvas.Children.Add(border);
                 margin += 100;
             }
-        //    CalculateKValue();
+            //    CalculateKValue();
 
         }
 
- 
-  
+
+
 
 
         // column visibility, if a combobox has value "Identifier", this column is not visible anymore
@@ -1196,8 +1205,8 @@ namespace CrypTool.Plugins.Anonymity
         {
 
 
-          
-            
+
+
             for (int i = 0; i < labelComboboxes.Count; i++)
             {
 
@@ -1205,12 +1214,12 @@ namespace CrypTool.Plugins.Anonymity
                 {
 
                     table.Columns[i].Visibility = Visibility.Collapsed;
-          
+
                 }
-                else if(table.Columns.Count != 0)
+                else if (table.Columns.Count != 0)
                 {
                     table.Columns[i].Visibility = Visibility.Visible;
-             
+
                 }
             }
 
@@ -1218,13 +1227,12 @@ namespace CrypTool.Plugins.Anonymity
             {
 
 
-                Console.WriteLine(column.Header);
                 if (column.Header != null && column.Header.ToString() == "GroupID")
                 {
-      
+
                     column.Visibility = Visibility.Collapsed;
 
-                
+
                 }
             }
 
@@ -1234,9 +1242,6 @@ namespace CrypTool.Plugins.Anonymity
         // calculation of k for k-Anonymity
         private void CalculateKValue()
         {
-
-   
-
             // Find the column indexes with "Quasi-Identifier" selected
             List<int> quasiIdentifierIndexes = new List<int>();
             for (int i = 0; i < labelComboboxes.Count; i++)
@@ -1244,23 +1249,72 @@ namespace CrypTool.Plugins.Anonymity
                 if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Quasi-Identifier")
                 {
                     quasiIdentifierIndexes.Add(i);
+
                 }
             }
 
+
+
+
+
+
+
             var groupedRows = dt.AsEnumerable()
-                .GroupBy(row => string.Join("|", quasiIdentifierIndexes.Select(index => row[index])))
-                .ToList();
+            .GroupBy(row => string.Join("|", quasiIdentifierIndexes.Select(index => row[index])))
+            .ToList();
 
             int minGroupSize = groupedRows.Min(group => group.Count());
 
-            kLabel.Content = minGroupSize.ToString() + " Anonymity";
 
-                DataTable newTable = dt.Clone();
 
-                if (!newTable.Columns.Contains("GroupID"))
-                {
-                    newTable.Columns.Add("GroupID", typeof(int));
-                }
+
+            if (!quasiIdentifierIndexes.Any())
+            {
+                minGroupSize = 1;
+            }
+
+
+          //  kLabel.Content = minGroupSize.ToString() + " Anonymity";
+            view.MinGroupSize = minGroupSize + " Anonymity";
+
+
+            int amountEquiClass = groupedRows.Count;
+
+
+
+            if (minGroupSize > 1 && amountEquiClass != 1)
+            {
+                view.AmountEquiClass = amountEquiClass + " Equivalence Classes";
+
+            }else if (minGroupSize > 1 && amountEquiClass == 1)
+            {
+                view.AmountEquiClass = amountEquiClass + " Equivalence Class";
+            }
+            else
+            {
+                view.AmountEquiClass = "No Equivalence Classes available";
+            }
+
+
+            DataTable newTable = dt.Clone();
+
+
+
+
+            if (!newTable.Columns.Contains("GroupID"))
+            {
+                newTable.Columns.Add("GroupID", typeof(int));
+            }
+
+            if (!newTable.Columns.Contains("IsGroupStart"))
+            {
+                newTable.Columns.Add("IsGroupStart", typeof(bool));
+            }
+
+            if (!newTable.Columns.Contains("IsGroupEnd"))
+            {
+                newTable.Columns.Add("IsGroupEnd", typeof(bool));
+            }
 
             if (minGroupSize == 1)
             {
@@ -1268,7 +1322,9 @@ namespace CrypTool.Plugins.Anonymity
                 {
                     DataRow newRow = newTable.NewRow();
                     newRow.ItemArray = row.ItemArray;
-                    newRow["GroupID"] = -1; 
+                    newRow["GroupID"] = -1;
+                    newRow["IsGroupStart"] = false;
+                    newRow["IsGroupEnd"] = false;
                     newTable.Rows.Add(newRow);
                 }
             }
@@ -1277,21 +1333,47 @@ namespace CrypTool.Plugins.Anonymity
                 int groupID = 0;
                 foreach (var group in groupedRows)
                 {
-                    foreach (var row in group)
+                    var groupRows = group.ToList();
+                    for (int i = 0; i < groupRows.Count; i++)
                     {
                         DataRow newRow = newTable.NewRow();
-                        newRow.ItemArray = row.ItemArray;
+                        newRow.ItemArray = groupRows[i].ItemArray;
                         newRow["GroupID"] = groupID;
+                        newRow["IsGroupStart"] = i == 0;
+                        newRow["IsGroupEnd"] = i == groupRows.Count - 1;
                         newTable.Rows.Add(newRow);
                     }
                     groupID++;
-
                 }
             }
-                dt = newTable;
-                table.ItemsSource = dt.DefaultView;
-                ColumnVisibility();
+
+
+
+            dt = newTable;
+            table.ItemsSource = dt.DefaultView;
+            ColumnVisibility();
             OnDataTableChanged();
+        }
+
+
+
+
+
+        private void OnDataTransformationButtonClick(object sender, RoutedEventArgs e)
+        {
+
+            DataTransformationView.Visibility = Visibility.Visible;
+            MetricsView.Visibility = Visibility.Collapsed;
+            dataTransformationButton.IsEnabled = false;
+            metricsButton.IsEnabled = true;
+        }
+
+        private void OnMetricsButtonClick(object sender, RoutedEventArgs e)
+        {
+            DataTransformationView.Visibility = Visibility.Collapsed;
+            MetricsView.Visibility = Visibility.Visible;
+            metricsButton.IsEnabled = false;
+            dataTransformationButton.IsEnabled = true;
         }
 
     }

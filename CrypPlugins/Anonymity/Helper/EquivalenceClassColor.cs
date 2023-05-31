@@ -20,7 +20,7 @@ namespace CrypTool.Plugins.Anonymity
     {
    
             Brushes.LightBlue,
-        Brushes.LightGreen,
+        Brushes.LightCoral,
  
     };
 

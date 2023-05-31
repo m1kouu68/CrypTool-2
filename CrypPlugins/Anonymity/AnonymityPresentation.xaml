@@ -4,68 +4,105 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:CrypTool.Plugins.Anonymity"
+             xmlns:views="clr-namespace:CrypTool.Plugins.Anonymity"
+             xmlns:vm="clr-namespace:CrypTool.Plugins.Anonymity"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+
     <UserControl.Resources>
         <local:EquivalenceClassColor x:Key="EquivalenceClassColor" />
+        <ControlTemplate x:Key="GroupedRowTemplate" TargetType="DataGridRow">
+            <Border x:Name="TopBorder" BorderBrush="Black" BorderThickness="0" Background="{TemplateBinding Background}">
+                <Border x:Name="BottomBorder" BorderBrush="Black" BorderThickness="0">
+                    <DataGridCellsPresenter />
+                </Border>
+            </Border>
+            <ControlTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsGroupStart}" Value="True">
+                    <Setter TargetName="TopBorder" Property="BorderThickness" Value="0,2,0,0" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsGroupEnd}" Value="True">
+                    <Setter TargetName="BottomBorder" Property="BorderThickness" Value="0,0,0,2" />
+                </DataTrigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+        <vm:ViewModel x:Key="ViewModel" />
     </UserControl.Resources>
+    <UserControl.DataContext>
+        <StaticResource ResourceKey="ViewModel" />
+    </UserControl.DataContext>
     <ScrollViewer>
-        <Grid >
+        <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="auto" />
-                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="auto" />
-            </Grid.ColumnDefinitions>
-            <Border
-            Grid.Row="0"
-            Grid.Column="0"
-            Grid.ColumnSpan="2"
-            Background="Gray">
-
+            <Border Grid.Row="0"  Background="Gray">
                 <StackPanel Margin="5" Orientation="Horizontal">
                     <Button
-                    x:Name="resetButton"
+                    x:Name="dataTransformationButton"
                     Margin="10,0,0,0"
                     HorizontalAlignment="Left"
                     Background="MediumPurple"
-                    Content="Reset"
-                    Foreground="White" />
+                    Content="Transformation"
+                    Foreground="Black" 
+                    IsEnabled="false"
+                    Click="OnDataTransformationButtonClick" />
+                    <Button
+                    x:Name="metricsButton"
+                    Margin="10,0,0,0"
+                    HorizontalAlignment="Left"
+                    Background="MediumPurple"
+                    Content="Metrics"
+                    Foreground="Black" 
+                    Click="OnMetricsButtonClick"/>
                 </StackPanel>
             </Border>
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Grid.Row="1" Grid.Column="0">
-                <DataGrid
+            <Grid x:Name="DataTransformationView" Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="auto" />
+                </Grid.ColumnDefinitions>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Grid.Row="1" Grid.Column="0">
+                    <Border BorderBrush="Black" BorderThickness="2" Padding="2" Margin="10,10,10,10">
+
+                        <DataGrid
                 x:Name="table"
                 Margin="10"
                 FontSize="16"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
                 IsReadOnly="True">
-                    <DataGrid.RowStyle>
-                        <Style TargetType="DataGridRow">
-                            <Setter Property="Background">
-                                <Setter.Value>
-                                    <Binding Path="GroupID" Converter="{StaticResource EquivalenceClassColor}" />
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </DataGrid.RowStyle>
-                </DataGrid>
-            </ScrollViewer>
-            <StackPanel Orientation="Horizontal" Grid.Column="1" Grid.Row="1" >
-                <StackPanel
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow">
+                                    <Setter Property="Background">
+                                        <Setter.Value>
+                                            <Binding Path="GroupID" Converter="{StaticResource EquivalenceClassColor}" />
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter Property="Template" Value="{StaticResource GroupedRowTemplate}" />
+
+                                </Style>
+                            </DataGrid.RowStyle>
+                        </DataGrid>
+                    </Border>
+                </ScrollViewer>
+                <StackPanel Orientation="Horizontal" Grid.Column="1" Grid.Row="1" >
+                    <StackPanel
             x:Name="headerlabels"
             Grid.Row="1"
             Grid.Column="1"
             Margin="20"
             HorizontalAlignment="Center"
             VerticalAlignment="Top">
-                    <TextBlock
+                        <TextBlock
                 FontSize="18"
                 FontWeight="DemiBold"
                 Foreground="Black"
@@ -74,38 +111,38 @@
 
 
 
+                    </StackPanel>
+
+
                 </StackPanel>
-                
-            </StackPanel>
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"  Grid.Row="2">
-                <StackPanel
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"  Grid.Row="2" Margin="10,50,10,10">
+
+                    <StackPanel
                 x:Name="functionContainer"
-                Margin="10"
-                 HorizontalAlignment="Stretch"
-                ScrollViewer.CanContentScroll="True"
-               Grid.Row="2"
-               Grid.RowSpan="2">
-                </StackPanel>
-            </ScrollViewer>
-            <Grid Grid.Column="0" Grid.Row="0">
-         
-                    <Label x:Name="kLabel"   HorizontalAlignment="Center" VerticalAlignment="Center">K-Anonymity:</Label>
       
-            </Grid>
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"  Grid.Row="2" Grid.Column="1">
-                <StackPanel
-                x:Name="numericContainer"
-                Margin="10"
                  HorizontalAlignment="Stretch"
                 ScrollViewer.CanContentScroll="True"
                Grid.Row="2"
                Grid.RowSpan="2">
-                </StackPanel>
-
-
-
-            </ScrollViewer>
            
+       
+                    </StackPanel>
+                </ScrollViewer>
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"  Grid.Row="2" Grid.Column="1" Margin="100,50,10,10">
+
+                    <StackPanel
+                x:Name="numericContainer"
+
+                 HorizontalAlignment="Stretch"
+                ScrollViewer.CanContentScroll="True"
+               Grid.Row="2"
+               Grid.RowSpan="2">
+                    </StackPanel>
+
+
+                </ScrollViewer>
+            </Grid>
+            <views:Metrics x:Name="MetricsView" Grid.Row="1" Visibility="Collapsed"/>
         </Grid>
     </ScrollViewer>
 </UserControl>
