@@ -10,6 +10,7 @@
         <StackPanel>
             <Label Content="{Binding MinGroupSize}" />
         <Label Content="{Binding AmountEquiClass}" />
+           <Label Content="{Binding DistinctLValue}" />
         </StackPanel>
     </Grid>
 </UserControl>

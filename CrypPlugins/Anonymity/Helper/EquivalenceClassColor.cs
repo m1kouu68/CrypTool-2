@@ -27,7 +27,7 @@ namespace CrypTool.Plugins.Anonymity
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
 
-            if (value == null || (int)value == -1)  // Check if value is null or 0
+            if (value == null || (int)value == -1)  
                 return Brushes.Transparent;
 
 

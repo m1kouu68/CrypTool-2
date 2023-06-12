@@ -40,6 +40,17 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
+        private string _distinctLValue;
+        public string DistinctLValue
+        {
+            get { return _distinctLValue; }
+            set
+            {
+                _distinctLValue = value;
+                OnPropertyChanged("DistinctLValue");
+            }
+        }
+
 
 
         public event PropertyChangedEventHandler PropertyChanged;

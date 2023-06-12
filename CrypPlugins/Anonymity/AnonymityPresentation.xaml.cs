@@ -16,6 +16,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Shapes;
 using System.Threading;
 using System.Windows.Threading;
+using System.Security.Cryptography;
 
 namespace CrypTool.Plugins.Anonymity
 {
@@ -1353,7 +1354,67 @@ namespace CrypTool.Plugins.Anonymity
             table.ItemsSource = dt.DefaultView;
             ColumnVisibility();
             OnDataTableChanged();
+
+
+            CalculateDistinctLDiversity(minGroupSize);
         }
+
+
+
+
+        private void CalculateDistinctLDiversity(int minGroupSize)
+        {
+            // Find the column index with "Sensitive Attribute" selected
+            int sensitiveIndex = -1;
+            for (int i = 0; i < labelComboboxes.Count; i++)
+            {
+                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Sensitive Attribute")
+                {
+                    sensitiveIndex = i;
+                    break;
+                }
+            }
+
+            // Check if a sensitive index was found
+            if (sensitiveIndex == -1)
+            {
+
+                view.DistinctLValue = "No sensitive attribute selected";
+                return;
+            }
+
+            // Check if minGroupSize is greater than 1
+            if (minGroupSize > 1)
+            {
+                // Group rows by "GroupID" and calculate the count of distinct values in the sensitive column for each group
+                var groupedRows = dt.AsEnumerable()
+                    .GroupBy(row => row["GroupID"])
+                    .Select(group => new
+                    {
+                        GroupId = group.Key,
+                        DistinctValuesCount = group
+                            .Select(row => row[sensitiveIndex].ToString())
+                            .Distinct()
+                            .Count()
+                    })
+                    .ToList();
+
+                // Find the group with the lowest count of distinct values
+                var minGroup = groupedRows.OrderBy(group => group.DistinctValuesCount).FirstOrDefault();
+
+
+                view.DistinctLValue = ""+minGroup.DistinctValuesCount + "- Diversity";
+
+               // Console.WriteLine($"GroupID with the smallest count of distinct values: {minGroup.GroupId}, Count of Distinct Values: {minGroup.DistinctValuesCount}");
+            }
+            else
+            {
+                view.DistinctLValue = "No Equivalence Class available";
+               // Console.WriteLine("No Equivalence Class available");
+            }
+        }
+
+
 
 
 
