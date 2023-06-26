@@ -8,9 +8,47 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <StackPanel>
-            <Label Content="{Binding MinGroupSize}" />
-        <Label Content="{Binding AmountEquiClass}" />
-           <Label Content="{Binding DistinctLValue}" />
+            <Border BorderBrush="Black" BorderThickness="1" Padding="10" CornerRadius="5" Margin="10,10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Label Grid.Row="0" Grid.Column="0" FontWeight="Bold">Amount of Equivalence Classes</Label>
+                    <Label Grid.Column="1" Grid.Row="0" Content="{Binding AmountEquiClass}" />
+                    <Label Grid.Row="1" Grid.Column="0" FontWeight="Bold" Margin="0,20,0,0">k-Anonymity</Label>
+                    <Label  Grid.Row="1" Grid.Column="1" Content="{Binding MinGroupSize}" Margin="0,20,0,0"/>
+                    <Label Grid.Row="2" Grid.Column="0" FontWeight="Bold" Margin="0,20,0,0">l-Diversity</Label>
+                    <Label Grid.Row="3" Grid.Column="0" FontWeight="Bold">Distinct l-Diversity:</Label>
+                    <Label Grid.Row="3" Grid.Column="1" Content="{Binding DistinctLValue}"  />
+                    <Label Grid.Row="4" Grid.Column="0" FontWeight="Bold">Entropy l-Diversity:</Label>
+                    <Label Grid.Row="4" Grid.Column="1" Content="{Binding EntropyLValue}"></Label>
+                    <Label Grid.Row="5" Grid.Column="0" FontWeight="Bold">Recursive (c,l)-Diversity:</Label>
+                    <Label Grid.Row="5" Grid.Column="1" Content="{Binding RecursiveLValue}"></Label>
+                    <Label Grid.Row="6" Grid.Column="0" FontWeight="Bold" Margin="0,20,0,0">(α,k)-Anonymity</Label>
+                    <Label Grid.Row="7" Grid.Column="0" FontWeight="Bold">Simple (α,k)-Anonymity</Label>
+                    <Label Grid.Row="7" Grid.Column="1" Content="{Binding SimpleAlphaK}"></Label>
+                    <Label Grid.Row="8" Grid.Column="0" FontWeight="Bold">General (α,k)-Anonymity</Label>
+                    <Label Grid.Row="8" Grid.Column="1" Content="{Binding GeneralAlphaK}"></Label>
+                    <Label Grid.Row="9" Grid.Column="0" FontWeight="Bold" Margin="0,20,0,0" >T-Closeness</Label>
+                    <Label Grid.Row="9" Grid.Column="1" Content="{Binding TCloseness}" Margin="0,20,0,0"></Label>
+
+                </Grid>
+            </Border>
         </StackPanel>
     </Grid>
 </UserControl>

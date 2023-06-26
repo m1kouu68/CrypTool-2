@@ -80,7 +80,7 @@ namespace CrypTool.Plugins.Anonymity
             dt = new DataTable();
 
             // split the input string into an array of lines
-
+            InputCsv = InputCsv.Replace(" ", "");
             string[] lines = InputCsv.Split(new[] { "\r\n", RowSeperator }, StringSplitOptions.RemoveEmptyEntries);
 
 
@@ -1253,21 +1253,11 @@ namespace CrypTool.Plugins.Anonymity
 
                 }
             }
-
-
-
-
-
-
-
             var groupedRows = dt.AsEnumerable()
             .GroupBy(row => string.Join("|", quasiIdentifierIndexes.Select(index => row[index])))
             .ToList();
 
             int minGroupSize = groupedRows.Min(group => group.Count());
-
-
-
 
             if (!quasiIdentifierIndexes.Any())
             {
@@ -1275,7 +1265,7 @@ namespace CrypTool.Plugins.Anonymity
             }
 
 
-          //  kLabel.Content = minGroupSize.ToString() + " Anonymity";
+   
             view.MinGroupSize = minGroupSize + " Anonymity";
 
 
@@ -1357,6 +1347,11 @@ namespace CrypTool.Plugins.Anonymity
 
 
             CalculateDistinctLDiversity(minGroupSize);
+            CalculateEntropyLDiversity(minGroupSize);
+            CalculateRecursiveDiversity(minGroupSize);
+            GeneralAlphaKAnonymity(minGroupSize);
+            SimpleAlphaKAnonymity(minGroupSize);
+            Tcloseness(minGroupSize);
         }
 
 
@@ -1364,7 +1359,7 @@ namespace CrypTool.Plugins.Anonymity
 
         private void CalculateDistinctLDiversity(int minGroupSize)
         {
-            // Find the column index with "Sensitive Attribute" selected
+         
             int sensitiveIndex = -1;
             for (int i = 0; i < labelComboboxes.Count; i++)
             {
@@ -1375,18 +1370,18 @@ namespace CrypTool.Plugins.Anonymity
                 }
             }
 
-            // Check if a sensitive index was found
+           
             if (sensitiveIndex == -1)
             {
 
-                view.DistinctLValue = "No sensitive attribute selected";
+                view.DistinctLValue = "No";
                 return;
             }
 
-            // Check if minGroupSize is greater than 1
+          
             if (minGroupSize > 1)
             {
-                // Group rows by "GroupID" and calculate the count of distinct values in the sensitive column for each group
+            
                 var groupedRows = dt.AsEnumerable()
                     .GroupBy(row => row["GroupID"])
                     .Select(group => new
@@ -1399,22 +1394,422 @@ namespace CrypTool.Plugins.Anonymity
                     })
                     .ToList();
 
-                // Find the group with the lowest count of distinct values
-                var minGroup = groupedRows.OrderBy(group => group.DistinctValuesCount).FirstOrDefault();
+            
+                var l = groupedRows.OrderBy(group => group.DistinctValuesCount).FirstOrDefault();
 
 
-                view.DistinctLValue = ""+minGroup.DistinctValuesCount + "- Diversity";
+                if (l.DistinctValuesCount == 1)
+                {
+                    view.DistinctLValue = "No";
+                }
 
-               // Console.WriteLine($"GroupID with the smallest count of distinct values: {minGroup.GroupId}, Count of Distinct Values: {minGroup.DistinctValuesCount}");
+                else
+                {
+                    view.DistinctLValue = "" + l.DistinctValuesCount + "- Diversity";
+                }
             }
             else
             {
-                view.DistinctLValue = "No Equivalence Class available";
-               // Console.WriteLine("No Equivalence Class available");
+                view.DistinctLValue = "No";
+          
             }
         }
 
 
+
+        private void CalculateEntropyLDiversity(int minGroupSize)
+        {
+            int sensitiveIndex = -1;
+            for (int i = 0; i < labelComboboxes.Count; i++)
+            {
+                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Sensitive Attribute")
+                {
+                    sensitiveIndex = i;
+                    break;
+                }
+            }
+
+            if (sensitiveIndex == -1)
+            {
+                view.EntropyLValue = "No";
+                return;
+            }
+
+            if (minGroupSize > 1)
+            {
+                var groupedRows = dt.AsEnumerable()
+                    .GroupBy(row => row["GroupID"])
+                    .ToList();
+
+                double minEntropy = double.MaxValue;
+                int l = int.MaxValue;
+                foreach (var group in groupedRows)
+                {
+                    var valueCounts = group
+                        .Select(row => row[sensitiveIndex].ToString())
+                        .GroupBy(val => val)
+                        .ToDictionary(g => g.Key, g => g.Count());
+
+                    double total = valueCounts.Values.Sum();
+                    double entropy = 0;
+                    foreach (var count in valueCounts.Values)
+                    {
+                        double probability = count / total;
+                        entropy -= probability * Math.Log(probability, 2.0);
+                    }
+
+                    if (entropy < minEntropy)
+                    {
+                        minEntropy = entropy;
+                    }
+
+                    int distinctValues = valueCounts.Count;
+                    if (distinctValues < l)
+                    {
+                        l = distinctValues;
+                    }
+
+                 
+                }
+
+                if(l == 1)
+                {
+                    view.EntropyLValue = "No";
+                    return;
+
+                }else if (minEntropy >= Math.Log(l, 2.0))
+                {
+     
+                    view.EntropyLValue = "Datatable is Entropy-L-Divers with smallest Entropy being " + minEntropy;
+                  
+                }
+                else
+                {
+          
+                    view.EntropyLValue = "No Entropy-L-Diversity with smallest Entropy being " + minEntropy;
+                }
+            }
+            else
+            {
+                view.EntropyLValue = "No";
+            }
+        }
+
+       
+
+
+
+
+        private void CalculateRecursiveDiversity(int minGroupSize)
+        {
+            int sensitiveIndex = -1;
+            for (int i = 0; i < labelComboboxes.Count; i++)
+            {
+                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Sensitive Attribute")
+                {
+                    sensitiveIndex = i;
+                    break;
+                }
+            }
+
+            if (sensitiveIndex == -1)
+            {
+                view.RecursiveLValue = "No";
+                return;
+            }
+
+            if (minGroupSize > 1)
+            {
+                var groupedRows = dt.AsEnumerable()
+                    .GroupBy(row => row["GroupID"])
+                    .ToList();
+
+                int l = int.MaxValue;
+                List<int> minGroupCounts = null;
+                foreach (var group in groupedRows)
+                {
+                    var valueCounts = group
+                        .Select(row => row[sensitiveIndex].ToString())
+                        .GroupBy(val => val)
+                        .Select(g => g.Count())
+                        .OrderByDescending(count => count)
+                        .ToList();
+
+                    int distinctValues = valueCounts.Count;
+                    if (distinctValues < l)
+                    {
+                        l = distinctValues;
+                        minGroupCounts = valueCounts;
+                    }
+                }
+
+                if (minGroupCounts != null)
+                {
+                    var nM = minGroupCounts.Skip(l - 1).ToList();
+                    double c = (double)minGroupCounts.First() / nM.Sum();
+
+  
+                    bool cSmall = true;
+                    foreach (var group in groupedRows)
+                    {
+                        var valueCounts = group
+                            .Select(row => row[sensitiveIndex].ToString())
+                            .GroupBy(val => val)
+                            .Select(g => g.Count())
+                            .OrderByDescending(count => count)
+                            .ToList();
+
+                        if (valueCounts.First() / valueCounts.Skip(l - 1).Sum() < c)
+                        {
+                            cSmall = false;
+                            break;
+                        }
+                    }
+
+                    var message = "n1 < c * (";
+                    for (int i = 0; i < nM.Count; i++)
+                    {
+                        if (i != 0)
+                        {
+                            message += " + ";
+                        }
+                        message += "n" + (i + l).ToString();
+                    }
+                    message += ")";
+
+                    if (cSmall)
+                    {
+                        message += " with c > " + c.ToString();
+        
+                        view.RecursiveLValue = message;
+                    }
+                    else
+                    {
+
+                        view.RecursiveLValue = "No";
+                    }
+                }
+            }
+            else
+            {
+                view.RecursiveLValue = "No";
+            }
+        }
+
+
+
+
+
+
+        private void SimpleAlphaKAnonymity(int minGroupSize)
+        {
+
+
+            view.SimpleAlphaK = "";
+
+            int sensitiveIndex = -1;
+            for (int i = 0; i < labelComboboxes.Count; i++)
+            {
+                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Sensitive Attribute")
+                {
+                    sensitiveIndex = i;
+                    break;
+                }
+            }
+
+            if (sensitiveIndex == -1)
+            {
+                view.SimpleAlphaK = "No";
+                return;
+            }
+
+            if (minGroupSize > 1)
+            {
+                var groupedRows = dt.AsEnumerable()
+                    .GroupBy(row => row["GroupID"])
+                    .ToList();
+
+                Dictionary<string, double> maxFrequency = new Dictionary<string, double>();
+
+                foreach (var group in groupedRows)
+                {
+                    var valueCounts = group
+                        .Select(row => row[sensitiveIndex].ToString())
+                        .GroupBy(val => val)
+                        .ToDictionary(g => g.Key, g => g.Count());
+
+                    double total = valueCounts.Values.Sum();
+                    foreach (var k in valueCounts)
+                    {
+                        double frequency = k.Value / total;
+                        if (!maxFrequency.ContainsKey(k.Key) || maxFrequency[k.Key] < frequency)
+                        {
+                            maxFrequency[k.Key] = frequency;
+                        }
+                    }
+                }
+
+                foreach (var k in maxFrequency)
+                {
+
+                    string sensValue = k.Key;
+                    double alphaValue = k.Value;
+                    string message = sensValue + ": " + "(" + alphaValue + ", " + minGroupSize + ")- Anonymity \n";
+                    view.SimpleAlphaK += message;
+                }
+            }
+            else
+            {
+                view.SimpleAlphaK = "No";
+            }
+        }
+
+
+
+        private void GeneralAlphaKAnonymity(int minGroupSize)
+        {
+            int sensitiveIndex = -1;
+            for (int i = 0; i < labelComboboxes.Count; i++)
+            {
+                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Sensitive Attribute")
+                {
+                    sensitiveIndex = i;
+                    break;
+                }
+            }
+
+            if (sensitiveIndex == -1)
+            {
+
+                view.GeneralAlphaK = "No";
+                return;
+            }
+
+            if (minGroupSize > 1)
+            {
+                var groupedRows = dt.AsEnumerable()
+                    .GroupBy(row => row["GroupID"])
+                    .ToList();
+
+                double maxFrequency = 0;
+                foreach (var group in groupedRows)
+                {
+                    var valueCounts = group
+                        .Select(row => row[sensitiveIndex].ToString())
+                        .GroupBy(val => val)
+                        .ToDictionary(g => g.Key, g => g.Count());
+
+                    double total = valueCounts.Values.Sum();
+                    foreach (var count in valueCounts.Values)
+                    {
+                        double frequency = count / total;
+                        if (frequency > maxFrequency)
+                        {
+                            maxFrequency = frequency;
+                        }
+                    }
+                }
+
+
+                view.GeneralAlphaK = "(" + maxFrequency + " , " + minGroupSize + ")- Anonymity";
+
+
+            }
+         
+            {
+                view.GeneralAlphaK = "No";
+            }
+        }
+
+
+
+        private void Tcloseness(int minGroupSize)
+        {
+            int sensitiveIndex = -1;
+            for (int i = 0; i < labelComboboxes.Count; i++)
+            {
+                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Sensitive Attribute")
+                {
+                    sensitiveIndex = i;
+                    break;
+                }
+            }
+
+            if (sensitiveIndex == -1)
+            {
+                view.TCloseness = "No";
+                return;
+            }
+
+            double total = dt.Rows.Count;
+
+            var overallCounts = dt.AsEnumerable()
+                .Select(row => row[sensitiveIndex].ToString())
+                .GroupBy(val => val)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            var groupedRows = dt.AsEnumerable()
+                .GroupBy(row => row["GroupID"])
+                .ToList();
+
+            double maxEmd = 0;
+
+            foreach (var group in groupedRows)
+            {
+                double groupTotal = group.Count();
+
+                var groupCounts = group
+                    .Select(row => row[sensitiveIndex].ToString())
+                    .GroupBy(val => val)
+                    .ToDictionary(g => g.Key, g => g.Count());
+
+                if (minGroupSize > 1 && hiddenComboboxes[sensitiveIndex].SelectedItem.ToString() == "Categoric")
+                {
+                    double emd = 0;
+    
+                    foreach (var overallCount in overallCounts)
+                    {
+                        double groupCount = groupCounts.ContainsKey(overallCount.Key) ? groupCounts[overallCount.Key] : 0;
+                        emd += Math.Abs(groupCount / groupTotal - overallCount.Value / total);
+
+
+                    }
+                    emd /= 2;
+                    maxEmd = Math.Max(maxEmd, emd);
+
+                }
+                else if (minGroupSize > 1 && hiddenComboboxes[sensitiveIndex].SelectedItem.ToString() == "Numeric")
+                {
+                    var orderedSensitiveValues = dt.AsEnumerable()
+                        .Select(row => double.Parse(row[sensitiveIndex].ToString()))
+                        .Distinct()
+                        .OrderBy(val => val)
+                        .ToList();
+
+                    double r = 0;
+                    double emd = 0;
+
+                    int counter = 0;
+                    foreach (var value in orderedSensitiveValues)
+                    {
+                        counter++;
+                        if (counter == orderedSensitiveValues.Count)
+                            break;
+
+                        double overallCount = overallCounts.ContainsKey(value.ToString()) ? overallCounts[value.ToString()] : 0;
+                        double groupCount = groupCounts.ContainsKey(value.ToString()) ? groupCounts[value.ToString()] : 0;
+
+                        r += groupCount / groupTotal - overallCount / total;
+
+                        emd += Math.Abs(r);
+                    }
+                    emd /= (orderedSensitiveValues.Count - 1);
+                    maxEmd = Math.Max(maxEmd, emd);
+                }
+            }
+            view.TCloseness = maxEmd + " - Closeness";
+
+        }
 
 
 
