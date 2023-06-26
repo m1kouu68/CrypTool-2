@@ -260,8 +260,8 @@ namespace CrypTool.Plugins.Anonymity
 
 
                 _presentation.table.Columns.Clear();
-
-
+                _presentation.ClearPresentation();
+             
 
             }, null);
 

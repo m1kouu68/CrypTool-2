@@ -54,6 +54,7 @@ namespace CrypTool.Plugins.Anonymity
         // clear presentation, remove all elements in the class lists and stackpanels
         public void ClearPresentation()
         {
+
             hiddenComboboxes.Clear();
             labelComboboxes.Clear();
             headerlabels.Children.Clear();
@@ -68,7 +69,11 @@ namespace CrypTool.Plugins.Anonymity
             }
             functionContainer.Children.Clear();
 
-
+            foreach (StackPanel childStackPanel in numericContainer.Children.OfType<StackPanel>())
+            {
+                childStackPanel.Children.Clear();
+            }
+            numericContainer.Children.Clear();
 
 
         }

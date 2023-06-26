@@ -32,7 +32,7 @@
         <StaticResource ResourceKey="ViewModel" />
     </UserControl.DataContext>
     <ScrollViewer>
-        <Grid>
+        <Grid x:Name="MainPresi">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
