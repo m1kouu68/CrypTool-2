@@ -1548,10 +1548,14 @@ namespace CrypTool.Plugins.Anonymity
 
 
             }
-         
+            else
             {
                 view.GeneralAlphaK = "No";
             }
+         
+            
+            
+            
         }
 
 

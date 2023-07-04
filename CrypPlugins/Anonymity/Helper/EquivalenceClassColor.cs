@@ -14,7 +14,7 @@ namespace CrypTool.Plugins.Anonymity
         private readonly List<Brush> _colors = new List<Brush>
     {
    
-            Brushes.LightBlue,
+        Brushes.LightBlue,
         Brushes.LightCoral,
  
     };
