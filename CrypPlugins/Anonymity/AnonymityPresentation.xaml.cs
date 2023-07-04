@@ -38,7 +38,7 @@ namespace CrypTool.Plugins.Anonymity
         private DataTable dt;
         private string[] headers;
         private ViewModel view;
-
+        private List<Label> identMessageLabels = new List<Label>(); 
 
 
 
@@ -54,7 +54,6 @@ namespace CrypTool.Plugins.Anonymity
         // clear presentation, remove all elements in the class lists and stackpanels
         public void ClearPresentation()
         {
-
             hiddenComboboxes.Clear();
             labelComboboxes.Clear();
             headerlabels.Children.Clear();
@@ -68,14 +67,11 @@ namespace CrypTool.Plugins.Anonymity
                 childStackPanel.Children.Clear();
             }
             functionContainer.Children.Clear();
-
             foreach (StackPanel childStackPanel in numericContainer.Children.OfType<StackPanel>())
             {
                 childStackPanel.Children.Clear();
             }
             numericContainer.Children.Clear();
-
-
         }
 
         // create the datatable in the presentation
@@ -102,6 +98,11 @@ namespace CrypTool.Plugins.Anonymity
             }
 
 
+            /* create comboboxes containing Identifier, Quasi-Identifier and Sensitive Attribute values
+             * create comboboxes containing Numeric and Categoric values
+             * create message that identifiers are removed from the table
+             */
+             
             for (int i = 0; i < headers.Length; i++)
             {
                 Grid grid = new Grid();
@@ -127,22 +128,24 @@ namespace CrypTool.Plugins.Anonymity
                 Grid.SetColumn(box1, 0);
                 grid.Children.Add(box1);
                 labelComboboxes.Add(box1);
-
                 ComboBox box2 = new ComboBox();
                 box2.Items.Add("Categoric");
                 box2.Items.Add("Numeric");
+                Label idMessage = new Label();
+                idMessage.Content = "Identifier is removed from table";
+                idMessage.Visibility = Visibility.Collapsed;
+                identMessageLabels.Add(idMessage);
                 box2.Margin = new Thickness(5);
                 box2.IsEnabled = false;
                 Grid.SetRow(box2, 1);
                 Grid.SetColumn(box2, 1);
+                Grid.SetRow(idMessage, 1);
+                Grid.SetColumn(idMessage, 1);
                 grid.Children.Add(box2);
+                grid.Children.Add(idMessage);
                 hiddenComboboxes.Add(box2);
-
                 headerlabels.Children.Add(grid);
             }
-
-
-
             // add data rows to the table
             for (int i = 1; i < lines.Length; i++)
             {
@@ -150,22 +153,11 @@ namespace CrypTool.Plugins.Anonymity
                 dt.Rows.Add(values);
 
             }
-
-
             // set default data type values for comboboxes
             SetDataTypeForColumns(hiddenComboboxes, dt);
-
-
-
-
-
-
-
-
             // datatable bind to datagrid in presentation
             table.ItemsSource = dt.DefaultView;
             table.AutoGeneratingColumn += DataGrid_AutoGeneratingColumn;
-
             table.CanUserSortColumns = false;
             table.CanUserAddRows = false;
             table.CanUserReorderColumns = false;
@@ -175,24 +167,12 @@ namespace CrypTool.Plugins.Anonymity
 
             //initial state of table is copied
             initialTable = dt.Copy();
-
-
-
-       
-         
-
-
-
             GenerateNumericItems();
             GenerateCategoricItems();
-
-
-
         }
 
 
-
-
+        // data table changed event
         public virtual void OnDataTableChanged()
         {
             DataTableChanged?.Invoke(this, EventArgs.Empty);
@@ -200,7 +180,7 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-
+        // make the columns GroupID, IsGroupStart, IsGroupEnd always invisible
         private void DataGrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
         {
             if (e.PropertyName == "GroupID")
@@ -217,6 +197,8 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
+
+        //  remove / generate categoric and numeric items after combobox value is selected by user  
         private void HandleItemCreation(object sender, SelectionChangedEventArgs e)
         {
 
@@ -234,9 +216,6 @@ namespace CrypTool.Plugins.Anonymity
                     }
                     RemoveSpecificCategoricItem(headers[i]);
                     ColumnVisibility();
-
-
-
                 }
                 else if (labelComboboxes[i] == combo && combo.SelectedItem.ToString() != "Quasi-Identifier" && hiddenComboboxes[i].SelectedItem.ToString() == "Numeric")
                 {
@@ -244,28 +223,16 @@ namespace CrypTool.Plugins.Anonymity
                     {
                         rows[j][i] = initialRows[j][i];
                     }
-
-
                     RemoveSpecificNumericItem(headers[i]);
                     ColumnVisibility();
-
-
-
                 }
                 else if (labelComboboxes[i] == combo && combo.SelectedItem.ToString() == "Quasi-Identifier" && hiddenComboboxes[i].SelectedItem.ToString() == "Categoric")
                 {
-
-
                     GenerateSpecificCategoricItem(i);
-
-
-
                 }
                 else if (labelComboboxes[i] == combo && combo.SelectedItem.ToString() == "Quasi-Identifier" && hiddenComboboxes[i].SelectedItem.ToString() == "Numeric")
                 {
                     GenerateSpecificNumericItem(i);
-
-
                 }
                 else
                 {
@@ -296,33 +263,7 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
-        // reset button functionality, presentation is reseted to the state before any action is done by the user
-        private void ResetButton_Click(object sender, RoutedEventArgs e)
-        {
-            foreach (ComboBox comboBox in hiddenComboboxes)
-            {
-                comboBox.SelectedItem = null;
-                comboBox.Visibility = Visibility.Hidden;
-            }
-
-            foreach (ComboBox comboBox in labelComboboxes)
-            {
-                comboBox.SelectedItem = null;
-
-            }
-
-            functionContainer.Children.Clear();
-            foreach (Button btn in _buttonList)
-            {
-                btn.IsEnabled = true;
-            }
-            DataTable init = initialTable.Copy();
-            table.ItemsSource = init.DefaultView;
-        }
-
-
-
-
+     
 
         // if combobox next to the column headers is set to Quasi-Identifier, the comboboxes with the items categoric and numeric appear
         private void ComboBoxSelectionQuasiIdentifier(object sender, SelectionChangedEventArgs e)
@@ -332,15 +273,22 @@ namespace CrypTool.Plugins.Anonymity
             int selectedIndex = labelComboboxes.IndexOf(combobox);
             if (combobox.SelectedItem != null && combobox.SelectedItem.ToString() == "Quasi-Identifier")
             {
+                identMessageLabels[selectedIndex].Visibility = Visibility.Hidden;
                 hiddenComboboxes[selectedIndex].Visibility = Visibility.Visible;
+
+            }else if(combobox.SelectedItem != null && combobox.SelectedItem.ToString() == "Identifier")
+            {
+
+                identMessageLabels[selectedIndex].Visibility = Visibility.Visible;
+                hiddenComboboxes[selectedIndex].Visibility = Visibility.Hidden;
+
             }
 
             else
             {
+                identMessageLabels[selectedIndex].Visibility = Visibility.Hidden;
                 hiddenComboboxes[selectedIndex].Visibility = Visibility.Hidden;
             }
-
-
         }
 
 
@@ -383,7 +331,7 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-                    textblock.Text = "Numeric Column: " + dt.Columns[i].ColumnName;
+                    textblock.Text = dt.Columns[i].ColumnName;
                     var stackPanel = new StackPanel { Orientation = Orientation.Horizontal };
                     numericContainer.Children.Add(textblock);
 
@@ -409,9 +357,6 @@ namespace CrypTool.Plugins.Anonymity
                         canvas.Children.Add(numTextblock);
                         margin += 50;
 
-
-
-
                         if (j != distinctValues.Count)
                         {
                             var rectangle = new Rectangle
@@ -424,8 +369,6 @@ namespace CrypTool.Plugins.Anonymity
 
 
                             rectangle.MouseLeftButtonDown += (sender, e) => Rect_MouseLeftButtonDown(sender, e, canvas, index);
-
-
                             Canvas.SetLeft(rectangle, margin + 10);
                             canvas.Children.Add(rectangle);
                             margin += 5;
@@ -441,14 +384,9 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-                    // group and degroup buttons
+                    // inverse button
                     var btn = new Button { Content = "Inverse", Background = Brushes.SkyBlue, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
-                    var debtn = new Button { Content = "Reset", Background = Brushes.MediumPurple, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
-
-
                     stackPanel.Children.Add(btn);
-                    stackPanel.Children.Add(debtn);
-
                     numericContainer.Children.Add(stackPanel);
 
 
@@ -460,20 +398,25 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
-
+        // rectangle mousleftbuttondown event handler
         private void Rect_MouseLeftButtonDown(object sender, MouseButtonEventArgs e, Canvas canvas, int columnIndex)
         {
             var rect = sender as Rectangle;
 
 
             HandleRectangleColoring(rect, canvas);
-
-
-            HandleGroupingLogic(rect, canvas, columnIndex);
-
-
+            HandleGrouping(rect, canvas, columnIndex);
 
         }
+
+
+
+
+              /* handle rectangle coloring
+               * if rectangle is clicked it gets red and rectangles left of it get grey until another rectangle appears
+               * if a rectangle is clicked again it gets the initial color which is light grey; also rectangles left of it get light grey color -
+               * until a red rectangle appears on the left except there is another red rectangle on the right side
+               */
 
         private void HandleRectangleColoring(Rectangle rect, Canvas canvas)
         {
@@ -556,8 +499,13 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
-
-        private void HandleGroupingLogic(Rectangle rect, Canvas canvas, int columnIndex)
+        /* grouping for numeric items
+         * first and last value left of a rectangle are grouped together
+         * 
+         * 
+         * 
+         */
+        private void HandleGrouping(Rectangle rect, Canvas canvas, int columnIndex)
         {
 
             DataTable init = initialTable.Copy();
@@ -618,14 +566,10 @@ namespace CrypTool.Plugins.Anonymity
 
         }
 
-
-
         // categoric items are created
         private void GenerateCategoricItems()
         {
-
-
-
+       
 
             for (int i = 0; i < hiddenComboboxes.Count(); i++)
             {
@@ -652,7 +596,7 @@ namespace CrypTool.Plugins.Anonymity
                     textblock.Foreground = Brushes.Black;
                     textblock.Margin = new Thickness(0, 10, 10, 10);
 
-                    textblock.Text = "Categoric Column: " + dt.Columns[i].ColumnName;
+                    textblock.Text = dt.Columns[i].ColumnName;
 
                     // canvas is filled with the distinct values of the column
                     foreach (var col in distinctValues)
@@ -721,12 +665,10 @@ namespace CrypTool.Plugins.Anonymity
                         margin += 100;
                     }
                     canvas.Width = margin + 100;
-                    var btn2 = new Button { Content = "Reset", Background = Brushes.MediumPurple, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
 
-                    btn2.Click += (s, e) => CategoricResetBtnClick(s, e, index);
                     var stackPanel = new StackPanel { Orientation = Orientation.Horizontal };
                     stackPanel.Children.Add(canvas);
-                    stackPanel.Children.Add(btn2);
+         
                     stackPanel.Children.Add(new ListView { VerticalAlignment = VerticalAlignment.Center });
                     functionContainer.Children.Add(textblock);
                     functionContainer.Children.Add(stackPanel);
@@ -737,7 +679,7 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-
+        // remove categoric item if it is not classified as Quasi-Identifier by the user
         private void RemoveSpecificCategoricItem(string columnName)
         {
             var childrenCopy = functionContainer.Children.Cast<UIElement>().ToList();
@@ -747,10 +689,9 @@ namespace CrypTool.Plugins.Anonymity
 
                 if (childrenCopy[i] is TextBlock textBlock)
                 {
-                    string[] parts = textBlock.Text.Split(':');
-                    if (parts.Length > 1 && parts[1].Trim() == columnName)
+                    string name = textBlock.Text;
+                    if (name.Length > 1 && name == columnName)
                     {
-                        // remove this TextBlock and the element after it
                         functionContainer.Children.Remove(textBlock);
                         if (i < childrenCopy.Count - 1)
                         {
@@ -765,7 +706,7 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-
+        // remove numeric item if it is not classified as Quasi-Identifier by the user
         private void RemoveSpecificNumericItem(string columnName)
         {
             var childrenCopy = numericContainer.Children.Cast<UIElement>().ToList();
@@ -775,8 +716,8 @@ namespace CrypTool.Plugins.Anonymity
 
                 if (childrenCopy[i] is TextBlock textBlock)
                 {
-                    string[] parts = textBlock.Text.Split(':');
-                    if (parts.Length > 1 && parts[1].Trim() == columnName)
+                    string name = textBlock.Text;
+                    if (name.Length > 1 && name == columnName)
                     {
                         numericContainer.Children.Remove(textBlock);
                         if (i < childrenCopy.Count - 1)
@@ -791,17 +732,12 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
-
+        // generate numeric item if it is classified as Quasi-Identifier by the user
         private void GenerateSpecificNumericItem(int index)
         {
-
-
-
             List<string> distinctValues = table.Items.Cast<DataRowView>()
                                 .Select(row => row.Row.ItemArray[index].ToString())
                                 .Distinct().ToList();
-
-
             var canvas = new Canvas();
             canvas.Margin = new Thickness(0, 1, 0, 0);
             var margin = 5;
@@ -820,7 +756,7 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-            textblock.Text = "Numeric Column: " + dt.Columns[index].ColumnName;
+            textblock.Text = dt.Columns[index].ColumnName;
             var stackPanel = new StackPanel { Orientation = Orientation.Horizontal };
 
 
@@ -865,22 +801,15 @@ namespace CrypTool.Plugins.Anonymity
 
                 }
             }
-
-
             canvas.Width = margin + 30;
             stackPanel.Children.Add(canvas);
 
 
 
-            // group and degroup buttons
+            // inverse button
             var btn = new Button { Content = "Inverse", Background = Brushes.SkyBlue, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
-            var debtn = new Button { Content = "Reset", Background = Brushes.MediumPurple, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
-
-
             stackPanel.Children.Add(btn);
-            stackPanel.Children.Add(debtn);
-
-
+     
 
             if (index == 0)
             {
@@ -912,12 +841,10 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-
+        // generate categoric item if it is classified as Quasi-Identifier by the user
 
         private void GenerateSpecificCategoricItem(int index)
         {
-
-
             List<string> distinctValues = table.Items.Cast<DataRowView>()
                             .Select(row => row.Row.ItemArray[index].ToString())
                             .Distinct().ToList();
@@ -934,7 +861,7 @@ namespace CrypTool.Plugins.Anonymity
             textblock.Foreground = Brushes.Black;
             textblock.Margin = new Thickness(0, 10, 10, 10);
 
-            textblock.Text = "Categoric Column: " + dt.Columns[index].ColumnName;
+            textblock.Text = dt.Columns[index].ColumnName;
 
             foreach (var col in distinctValues)
             {
@@ -999,13 +926,9 @@ namespace CrypTool.Plugins.Anonymity
                 canvas.Children.Add(border);
                 margin += 100;
             }
-            canvas.Width = margin + 100;
-            var btn2 = new Button { Content = "Reset", Background = Brushes.MediumPurple, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
-
-            btn2.Click += (s, e) => CategoricResetBtnClick(s, e, index);
+            canvas.Width = margin + 100;     
             var stackPanel = new StackPanel { Orientation = Orientation.Horizontal };
             stackPanel.Children.Add(canvas);
-            stackPanel.Children.Add(btn2);
             stackPanel.Children.Add(new ListView { VerticalAlignment = VerticalAlignment.Center });
 
 
@@ -1040,8 +963,8 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
-
-        private void UpdateCategoricColumn(Canvas canvas, int columnIndex)
+        // categoric column in datatable is updated according to intersecting or non-intersecting of categoric items
+         private void UpdateCategoricColumn(Canvas canvas, int columnIndex)
         {
             var groups = new List<List<string>>();
             DataTable init = initialTable.Copy();
@@ -1088,7 +1011,6 @@ namespace CrypTool.Plugins.Anonymity
                     }
                 }
             }
-
             var rows = table.Items.Cast<DataRowView>().ToList();
 
             for (int i = 0; i < rows.Count; ++i)
@@ -1116,103 +1038,10 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-        // reset functionality for categoric items
-        private void CategoricResetBtnClick(object sender, RoutedEventArgs e, int columnIndex)
-        {
-            var btn = sender as Button;
-            var container = btn.Parent as StackPanel;
-            var canvas = container.Children[0] as Canvas;
-            var groupBtn = container.Children[1] as Button;
-            groupBtn.IsEnabled = true;
-            canvas.Children.Clear();
-            DataTable currentTable = (table.ItemsSource as DataView).ToTable();
-            for (int rowIndex = 0; rowIndex < initialTable.Rows.Count; rowIndex++)
-            {
-
-                currentTable.Rows[rowIndex][columnIndex] = initialTable.Rows[rowIndex][columnIndex];
-            }
-
-            table.ItemsSource = currentTable.DefaultView;
-            ColumnVisibility();
-            List<string> distinctValues = table.Items.Cast<DataRowView>()
-                                    .Select(row => row.Row.ItemArray[columnIndex].ToString())
-                                    .Distinct().ToList();
-            var margin = 0.0;
-
-            foreach (var col in distinctValues)
-            {
-                var border = new Border();
-                var converter = new BrushConverter();
-                var brush = (Brush)converter.ConvertFromString("#3F48CC");
-                border.Background = brush;
-                border.Tag = col;
-                border.Cursor = Cursors.Hand;
-                border.CornerRadius = new CornerRadius(5);
-                border.Padding = new Thickness(10);
-                border.Child = new TextBlock() { Text = col, Foreground = Brushes.White, FontSize = 14 };
-
-                border.MouseLeftButtonDown += (senderObject, ev) =>
-                {
-                    var element = senderObject as UIElement;
-                    if (element != null)
-                    {
-                        element.CaptureMouse();
-                        isDragging = true;
-                        startPoint = ev.GetPosition(canvas);
-                    }
-
-                };
-
-                border.MouseMove += (senderObject, ev) =>
-                {
-                    if (isDragging)
-                    {
-                        Point currentPosition = ev.GetPosition(canvas);
-                        double x = currentPosition.X - startPoint.X;
-                        double y = currentPosition.Y - startPoint.Y;
-                        double newX = Canvas.GetLeft(border) + x;
-                        double newY = Canvas.GetTop(border) + y;
-                        if (newX >= 0 && newX <= canvas.ActualWidth - border.ActualWidth && newY >= 0 && newY <= canvas.ActualHeight - border.ActualHeight)
-                        {
-
-                            Canvas.SetLeft(border, newX);
-                            Canvas.SetTop(border, newY);
-
-                            startPoint = currentPosition;
-                        }
-                    }
-                };
-                border.MouseLeftButtonUp += (senderObject, ev) =>
-                {
-                    var element = senderObject as UIElement;
-                    if (element != null)
-                    {
-                        element.ReleaseMouseCapture();
-                        isDragging = false;
-                    }
-
-                    UpdateCategoricColumn(canvas, columnIndex);
-                };
-                Canvas.SetLeft(border, margin);
-                Canvas.SetTop(border, 0);
-                canvas.Children.Add(border);
-                margin += 100;
-            }
-            //    CalculateKValue();
-
-        }
-
-
-
-
-
+       
         // column visibility, if a combobox has value "Identifier", this column is not visible anymore
         private void ColumnVisibility()
         {
-
-
-
-
             for (int i = 0; i < labelComboboxes.Count; i++)
             {
 
@@ -1351,6 +1180,8 @@ namespace CrypTool.Plugins.Anonymity
             OnDataTableChanged();
 
 
+
+            // other anonymization methods are called here
             CalculateDistinctLDiversity(minGroupSize);
             CalculateEntropyLDiversity(minGroupSize);
             CalculateRecursiveDiversity(minGroupSize);
@@ -1360,8 +1191,7 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
-
-
+        // distinct l diversity calculation
         private void CalculateDistinctLDiversity(int minGroupSize)
         {
          
@@ -1422,6 +1252,7 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
+        // entropy l diversity calculation
         private void CalculateEntropyLDiversity(int minGroupSize)
         {
             int sensitiveIndex = -1;
@@ -1500,11 +1331,8 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
-       
 
-
-
-
+        // recursive (c,l) diversity calculation
         private void CalculateRecursiveDiversity(int minGroupSize)
         {
             int sensitiveIndex = -1;
@@ -1605,7 +1433,7 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-
+        // simple alpha k anonymity calculation
         private void SimpleAlphaKAnonymity(int minGroupSize)
         {
 
@@ -1670,7 +1498,7 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
-
+        // general alpha k anonymity calculation
         private void GeneralAlphaKAnonymity(int minGroupSize)
         {
             int sensitiveIndex = -1;
@@ -1727,7 +1555,7 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
-
+        // T closeness calculation
         private void Tcloseness(int minGroupSize)
         {
             int sensitiveIndex = -1;
@@ -1819,7 +1647,7 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-
+        // event handler for data transformation button click
         private void OnDataTransformationButtonClick(object sender, RoutedEventArgs e)
         {
 
@@ -1829,6 +1657,8 @@ namespace CrypTool.Plugins.Anonymity
             metricsButton.IsEnabled = true;
         }
 
+
+        // event handler for metrics button click
         private void OnMetricsButtonClick(object sender, RoutedEventArgs e)
         {
             DataTransformationView.Visibility = Visibility.Collapsed;

@@ -117,20 +117,33 @@
                 </StackPanel>
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"  Grid.Row="2" Margin="10,50,10,10">
 
-                    <StackPanel
+                    <StackPanel>
+                        <TextBlock Margin="0,0,0,10"
+                                   FontSize= "18"  
+                                   FontWeight="DemiBold"
+                                   Foreground="Black" >Categoric Columns</TextBlock>
+
+
+                        <StackPanel
                 x:Name="functionContainer"
       
                  HorizontalAlignment="Stretch"
                 ScrollViewer.CanContentScroll="True"
                Grid.Row="2"
                Grid.RowSpan="2">
-           
-       
+
+
+                    </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"  Grid.Row="2" Grid.Column="1" Margin="100,50,10,10">
+                    <StackPanel>
 
-                    <StackPanel
+                        <TextBlock Margin="0,0,0,10"
+                                   FontSize= "18"  
+                                   FontWeight="DemiBold"
+                                   Foreground="Black" >Numeric Columns</TextBlock>
+                        <StackPanel
                 x:Name="numericContainer"
 
                  HorizontalAlignment="Stretch"
@@ -138,7 +151,7 @@
                Grid.Row="2"
                Grid.RowSpan="2">
                     </StackPanel>
-
+                    </StackPanel>
 
                 </ScrollViewer>
             </Grid>

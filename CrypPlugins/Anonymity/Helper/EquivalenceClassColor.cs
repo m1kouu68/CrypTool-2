@@ -11,11 +11,6 @@ namespace CrypTool.Plugins.Anonymity
 {
     public class EquivalenceClassColor : IValueConverter
     {
-
-
-
-
-
         private readonly List<Brush> _colors = new List<Brush>
     {
    
