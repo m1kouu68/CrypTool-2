@@ -122,6 +122,7 @@ namespace CrypTool.Plugins.Anonymity
                 box1.Items.Add("Sensitive Attribute");
                 box1.SelectedValue = "Quasi-Identifier";
                 box1.Margin = new Thickness(5);
+                box1.SelectionChanged += OneSensitiveAttribute;
                 box1.SelectionChanged += ComboBoxSelectionQuasiIdentifier;
                 box1.SelectionChanged += HandleItemCreation;
                 Grid.SetRow(box1, 1);
@@ -169,6 +170,11 @@ namespace CrypTool.Plugins.Anonymity
             initialTable = dt.Copy();
             GenerateNumericItems();
             GenerateCategoricItems();
+        }
+
+        private void OneSensitiveAttribute(object sender, SelectionChangedEventArgs e)
+        {
+       
         }
 
 
@@ -1613,6 +1619,7 @@ namespace CrypTool.Plugins.Anonymity
                     }
                     emd /= 2;
                     maxEmd = Math.Max(maxEmd, emd);
+                    view.TCloseness = maxEmd + " - Closeness";
 
                 }
                 else if (minGroupSize > 1 && hiddenComboboxes[sensitiveIndex].SelectedItem.ToString() == "Numeric")
@@ -1642,9 +1649,14 @@ namespace CrypTool.Plugins.Anonymity
                     }
                     emd /= (orderedSensitiveValues.Count - 1);
                     maxEmd = Math.Max(maxEmd, emd);
+                    view.TCloseness = maxEmd + " - Closeness";
+                }
+                else
+                {
+                    view.TCloseness = "No";
                 }
             }
-            view.TCloseness = maxEmd + " - Closeness";
+          
 
         }
 
