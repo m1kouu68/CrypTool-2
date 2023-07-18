@@ -363,13 +363,13 @@ namespace CrypTool.Plugins.Anonymity
                         canvas.Children.Add(numTextblock);
                         margin += 50;
 
-                        if (j != distinctValues.Count)
+                        if (j != distinctValues.Count - 1)
                         {
                             var rectangle = new Rectangle
                             {
                                 Width = 3,
                                 Height = canvas.Height,
-                                Fill = Brushes.LightGray,
+                                Fill = Brushes.Black,
 
                             };
 
@@ -392,6 +392,8 @@ namespace CrypTool.Plugins.Anonymity
 
                     // inverse button
                     var btn = new Button { Content = "Inverse", Background = Brushes.SkyBlue, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
+                    btn.Click += (sender, e) => InverseGrouping(canvas, index);
+
                     stackPanel.Children.Add(btn);
                     numericContainer.Children.Add(stackPanel);
 
@@ -403,6 +405,34 @@ namespace CrypTool.Plugins.Anonymity
 
         }
 
+        private void InverseGrouping(Canvas canvas, int columnIndex)
+        {
+            // Invert the color of rectangles
+            foreach (UIElement child in canvas.Children)
+            {
+                if (child is Rectangle rectangle)
+                {
+                    if (rectangle.Fill == Brushes.Black)
+                    {
+                        rectangle.Fill = Brushes.LightGray;
+                    }
+                    else if (rectangle.Fill == Brushes.LightGray)
+                    {
+                        rectangle.Fill = Brushes.Black;
+                    }
+                }
+            }
+
+            // Now run the handle grouping again to update the grouping in the table
+            HandleGrouping(null, canvas, columnIndex);
+        }
+
+
+
+
+
+
+
 
         // rectangle mousleftbuttondown event handler
         private void Rect_MouseLeftButtonDown(object sender, MouseButtonEventArgs e, Canvas canvas, int columnIndex)
@@ -410,99 +440,32 @@ namespace CrypTool.Plugins.Anonymity
             var rect = sender as Rectangle;
 
 
-            HandleRectangleColoring(rect, canvas);
-            HandleGrouping(rect, canvas, columnIndex);
+            HandleRectangleColoring(rect);
+            HandleGrouping(rect,canvas, columnIndex);
 
         }
 
 
 
 
-              /* handle rectangle coloring
-               * if rectangle is clicked it gets red and rectangles left of it get grey until another rectangle appears
-               * if a rectangle is clicked again it gets the initial color which is light grey; also rectangles left of it get light grey color -
-               * until a red rectangle appears on the left except there is another red rectangle on the right side
-               */
+        /* handle rectangle coloring
+         * if rectangle is clicked it gets red and rectangles left of it get grey until another rectangle appears
+         * if a rectangle is clicked again it gets the initial color which is light grey; also rectangles left of it get light grey color -
+         * until a red rectangle appears on the left except there is another red rectangle on the right side
+         */
 
-        private void HandleRectangleColoring(Rectangle rect, Canvas canvas)
+        private void HandleRectangleColoring(Rectangle rect)
         {
-            int rectIndex = canvas.Children.IndexOf(rect);
-            bool anotherRedExists = false;
-
-            // Check if another red rectangle exists to the right of this rectangle.
-            for (int i = rectIndex + 1; i < canvas.Children.Count; i++)
+            if (rect.Fill == Brushes.LightGray)
             {
-                if (canvas.Children[i] is Rectangle r && r.Fill == Brushes.Red)
-                {
-                    anotherRedExists = true;
-                    break;
-                }
-            }
-
-            if (rect.Fill == Brushes.Red)
-            {
-                if (anotherRedExists)
-                {
-                    rect.Fill = Brushes.Gray;
-
-                    // Change the color of the rectangles on the left until another red rectangle is found.
-                    for (int i = rectIndex - 1; i >= 0; i--)
-                    {
-                        if (canvas.Children[i] is Rectangle r)
-                        {
-                            if (r.Fill == Brushes.Red)
-                            {
-                                break;
-                            }
-                            else
-                            {
-                                r.Fill = Brushes.Gray;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    rect.Fill = Brushes.LightGray;
-
-                    // Change the color of the rectangles on the left to light gray until another red rectangle is found.
-                    for (int i = rectIndex - 1; i >= 0; i--)
-                    {
-                        if (canvas.Children[i] is Rectangle r)
-                        {
-                            if (r.Fill == Brushes.Red)
-                            {
-                                break;
-                            }
-                            else
-                            {
-                                r.Fill = Brushes.LightGray;
-                            }
-                        }
-                    }
-                }
+                rect.Fill = Brushes.Black;
             }
             else
             {
-                rect.Fill = Brushes.Red;
-
-                // Change the color of the rectangles on the left until another red rectangle is found.
-                for (int i = rectIndex - 1; i >= 0; i--)
-                {
-                    if (canvas.Children[i] is Rectangle r)
-                    {
-                        if (r.Fill == Brushes.Red)
-                        {
-                            break;
-                        }
-                        else
-                        {
-                            r.Fill = Brushes.Gray;
-                        }
-                    }
-                }
+                rect.Fill = Brushes.LightGray;
             }
         }
+
 
 
         /* grouping for numeric items
@@ -511,66 +474,109 @@ namespace CrypTool.Plugins.Anonymity
          * 
          * 
          */
-        private void HandleGrouping(Rectangle rect, Canvas canvas, int columnIndex)
+
+
+        private void HandleGrouping(Rectangle clickedRect, Canvas canvas, int columnIndex)
         {
-
             DataTable init = initialTable.Copy();
-
-
             var rows = table.Items.Cast<DataRowView>().ToList();
             var initialRows = init.AsEnumerable().ToList();
+
+            // Set all the values to their initial state
             for (int i = 0; i < rows.Count; i++)
             {
                 rows[i][columnIndex] = initialRows[i][columnIndex];
             }
 
+            // Define bounds for grouping
+            int lowerBound = int.MaxValue;
+            int upperBound = int.MinValue;
 
-            TextBlock firstTextBlock = null;
-            TextBlock lastTextBlock = null;
-            for (int i = 0; i < canvas.Children.Count; i++)
+            // Define flags
+            bool inGroup = false;
+            TextBlock prevTextBlock = null;
+
+            // Iterate over the canvas elements from left to right
+            foreach (UIElement child in canvas.Children)
             {
-                var child = canvas.Children[i];
-
-
                 if (child is TextBlock textBlock)
                 {
-                    if (firstTextBlock == null)
-                    {
-                        firstTextBlock = textBlock;
-                    }
-                    lastTextBlock = textBlock;
+                    prevTextBlock = textBlock;
                 }
-
-
-                if (child is Rectangle rectangle && rectangle.Fill == Brushes.Red)
+                else if (child is Rectangle rectangle)
                 {
-                    if (firstTextBlock != null && lastTextBlock != null)
+                    if (rectangle.Fill == Brushes.LightGray)
                     {
-
-                        int firstValue = int.Parse(firstTextBlock.Text);
-                        int lastValue = int.Parse(lastTextBlock.Text);
-                        foreach (var row in rows)
+                        inGroup = true;
+                        if (prevTextBlock != null)
                         {
-                            int cellValue;
-                            if (int.TryParse(row[columnIndex].ToString(), out cellValue))
+                            int value = int.Parse(prevTextBlock.Text);
+                            lowerBound = Math.Min(lowerBound, value);
+                            upperBound = Math.Max(upperBound, value);
+                        }
+                    }
+                    else // if it's black
+                    {
+                        if (inGroup && prevTextBlock != null)
+                        {
+                            // We reached the end of a group, update the upper bound
+                            int value = int.Parse(prevTextBlock.Text);
+                            upperBound = Math.Max(upperBound, value);
+
+                            // Apply grouping in the table
+                            foreach (var row in rows)
                             {
-                                if (cellValue >= firstValue && cellValue <= lastValue)
+                                int cellValue;
+                                if (int.TryParse(row[columnIndex].ToString(), out cellValue))
                                 {
-                                    row[columnIndex] = $"[{firstValue} - {lastValue}]";
+                                    if (cellValue >= lowerBound && cellValue <= upperBound)
+                                    {
+                                        row[columnIndex] = $"[{lowerBound} - {upperBound}]";
+                                    }
                                 }
                             }
-                        }
 
-                        firstTextBlock = null;
-                        lastTextBlock = null;
+                            // Reset flags and bounds
+                            inGroup = false;
+                            lowerBound = int.MaxValue;
+                            upperBound = int.MinValue;
+                        }
                     }
                 }
             }
 
+            // If we're still in a group at the end, apply the grouping one last time
+            if (inGroup && prevTextBlock != null)
+            {
+                // Update the upper bound
+                int value = int.Parse(prevTextBlock.Text);
+                upperBound = Math.Max(upperBound, value);
+
+                // Apply grouping in the table
+                foreach (var row in rows)
+                {
+                    int cellValue;
+                    if (int.TryParse(row[columnIndex].ToString(), out cellValue))
+                    {
+                        if (cellValue >= lowerBound && cellValue <= upperBound)
+                        {
+                            row[columnIndex] = $"[{lowerBound} - {upperBound}]";
+                        }
+                    }
+                }
+            }
 
             CalculateKValue();
-
         }
+
+
+
+
+
+
+
+
+
 
         // categoric items are created
         private void GenerateCategoricItems()
@@ -1384,8 +1390,8 @@ namespace CrypTool.Plugins.Anonymity
 
                 if (minGroupCounts != null)
                 {
-                    var nM = minGroupCounts.Skip(l - 1).ToList();
-                    double c = (double)minGroupCounts.First() / nM.Sum();
+                    var nM = minGroupCounts.Skip(l - 1).ToList();  // new list in which the the highest amount in minGroupCounts is not available anymore
+                    double c = (double)minGroupCounts.First() / nM.Sum();  // mingroupCounts.First() represents the highest amount
 
   
                     bool cSmall = true;
