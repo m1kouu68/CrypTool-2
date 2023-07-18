@@ -423,7 +423,6 @@ namespace CrypTool.Plugins.Anonymity
                 }
             }
 
-            // Now run the handle grouping again to update the grouping in the table
             HandleGrouping(null, canvas, columnIndex);
         }
 
@@ -449,9 +448,7 @@ namespace CrypTool.Plugins.Anonymity
 
 
         /* handle rectangle coloring
-         * if rectangle is clicked it gets red and rectangles left of it get grey until another rectangle appears
-         * if a rectangle is clicked again it gets the initial color which is light grey; also rectangles left of it get light grey color -
-         * until a red rectangle appears on the left except there is another red rectangle on the right side
+         * 
          */
 
         private void HandleRectangleColoring(Rectangle rect)
@@ -469,7 +466,7 @@ namespace CrypTool.Plugins.Anonymity
 
 
         /* grouping for numeric items
-         * first and last value left of a rectangle are grouped together
+         *
          * 
          * 
          * 
@@ -482,21 +479,20 @@ namespace CrypTool.Plugins.Anonymity
             var rows = table.Items.Cast<DataRowView>().ToList();
             var initialRows = init.AsEnumerable().ToList();
 
-            // Set all the values to their initial state
+     
             for (int i = 0; i < rows.Count; i++)
             {
                 rows[i][columnIndex] = initialRows[i][columnIndex];
             }
 
-            // Define bounds for grouping
+
             int lowerBound = int.MaxValue;
             int upperBound = int.MinValue;
 
-            // Define flags
+          
             bool inGroup = false;
             TextBlock prevTextBlock = null;
 
-            // Iterate over the canvas elements from left to right
             foreach (UIElement child in canvas.Children)
             {
                 if (child is TextBlock textBlock)
@@ -515,15 +511,15 @@ namespace CrypTool.Plugins.Anonymity
                             upperBound = Math.Max(upperBound, value);
                         }
                     }
-                    else // if it's black
+                    else 
                     {
                         if (inGroup && prevTextBlock != null)
                         {
-                            // We reached the end of a group, update the upper bound
+    
                             int value = int.Parse(prevTextBlock.Text);
                             upperBound = Math.Max(upperBound, value);
 
-                            // Apply grouping in the table
+       
                             foreach (var row in rows)
                             {
                                 int cellValue;
@@ -536,7 +532,7 @@ namespace CrypTool.Plugins.Anonymity
                                 }
                             }
 
-                            // Reset flags and bounds
+    
                             inGroup = false;
                             lowerBound = int.MaxValue;
                             upperBound = int.MinValue;
@@ -545,14 +541,14 @@ namespace CrypTool.Plugins.Anonymity
                 }
             }
 
-            // If we're still in a group at the end, apply the grouping one last time
+
             if (inGroup && prevTextBlock != null)
             {
-                // Update the upper bound
+
                 int value = int.Parse(prevTextBlock.Text);
                 upperBound = Math.Max(upperBound, value);
 
-                // Apply grouping in the table
+
                 foreach (var row in rows)
                 {
                     int cellValue;
@@ -791,13 +787,13 @@ namespace CrypTool.Plugins.Anonymity
                 canvas.Children.Add(numTextblock);
                 margin += 50;
 
-                if (j != distinctValues.Count)
+                if (j != distinctValues.Count - 1)
                 {
                     var rectangle = new Rectangle
                     {
                         Width = 3,
                         Height = canvas.Height,
-                        Fill = Brushes.LightGray,
+                        Fill = Brushes.Black,
 
                     };
 
@@ -820,6 +816,7 @@ namespace CrypTool.Plugins.Anonymity
 
             // inverse button
             var btn = new Button { Content = "Inverse", Background = Brushes.SkyBlue, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
+            btn.Click += (sender, e) => InverseGrouping(canvas, index);
             stackPanel.Children.Add(btn);
      
 
