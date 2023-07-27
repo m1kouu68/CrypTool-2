@@ -122,7 +122,6 @@ namespace CrypTool.Plugins.Anonymity
                 box1.Items.Add("Sensitive Attribute");
                 box1.SelectedValue = "Quasi-Identifier";
                 box1.Margin = new Thickness(5);
-                box1.SelectionChanged += OneSensitiveAttribute;
                 box1.SelectionChanged += ComboBoxSelectionQuasiIdentifier;
                 box1.SelectionChanged += HandleItemCreation;
                 Grid.SetRow(box1, 1);
@@ -172,10 +171,7 @@ namespace CrypTool.Plugins.Anonymity
             GenerateCategoricItems();
         }
 
-        private void OneSensitiveAttribute(object sender, SelectionChangedEventArgs e)
-        {
 
-        }
 
 
         // data table changed event
@@ -210,7 +206,7 @@ namespace CrypTool.Plugins.Anonymity
 
             ComboBox combo = sender as ComboBox;
             DataTable init = initialTable.Copy();
-            var rows = table.Items.Cast<DataRowView>().ToList();
+            var rows = dt.AsEnumerable().ToList();
             var initialRows = init.AsEnumerable().ToList();
             for (int i = 0; i < labelComboboxes.Count; i++)
             {
@@ -223,7 +219,16 @@ namespace CrypTool.Plugins.Anonymity
 
                     SpecificColumnVisibility(i);
                     RemoveSpecificCategoricItem(headers[i]);
-                    
+                    CheckSelectedTab(tabSelec);
+
+                    if(combo.SelectedItem.ToString() == "Identifier")
+                    {
+                        CenterColumnData(i);
+                    }
+
+
+
+            
                 }
                 else if (labelComboboxes[i] == combo && combo.SelectedItem.ToString() != "Quasi-Identifier" && hiddenComboboxes[i].SelectedItem.ToString() == "Numeric")
                 {
@@ -233,20 +238,30 @@ namespace CrypTool.Plugins.Anonymity
                     }
                     SpecificColumnVisibility(i);
                     RemoveSpecificNumericItem(headers[i]);
-                 
+                    CheckSelectedTab(tabSelec);
+
+
+                    if (combo.SelectedItem.ToString() == "Identifier")
+                    {
+                        CenterColumnData(i);
+                    }
+
+
                 }
                 else if (labelComboboxes[i] == combo && combo.SelectedItem.ToString() == "Quasi-Identifier" && hiddenComboboxes[i].SelectedItem.ToString() == "Categoric")
                 {
                     SpecificColumnVisibility(i);
                     GenerateSpecificCategoricItem(i);
+                    CheckSelectedTab(tabSelec);
                 }
                 else if (labelComboboxes[i] == combo && combo.SelectedItem.ToString() == "Quasi-Identifier" && hiddenComboboxes[i].SelectedItem.ToString() == "Numeric")
                 {
                     SpecificColumnVisibility(i);
                     GenerateSpecificNumericItem(i);
+                    CheckSelectedTab(tabSelec);
                 }
-                
-       
+
+
             }
 
         }
@@ -394,7 +409,7 @@ namespace CrypTool.Plugins.Anonymity
                     scrollViewer.Margin = new Thickness(0, 0, 0, 10);
                     stackPanel.Children.Add(canvas);
                     stackPanel.Children.Add(new ListView { VerticalAlignment = VerticalAlignment.Center });
-                   
+
                     // inverse button
                     var btn = new Button { Content = "Inverse", Background = Brushes.SkyBlue, FontSize = 14, Margin = new Thickness(10, 0, 0, 0), Foreground = Brushes.White, Width = 60, Height = 30 };
                     btn.Click += (sender, e) => InverseGrouping(canvas, index);
@@ -480,7 +495,7 @@ namespace CrypTool.Plugins.Anonymity
         private void HandleGrouping(Rectangle clickedRect, Canvas canvas, int columnIndex)
         {
             DataTable init = initialTable.Copy();
-            var rows = table.Items.Cast<DataRowView>().ToList();
+            var rows = dt.AsEnumerable().ToList();
             var initialRows = init.AsEnumerable().ToList();
 
 
@@ -527,11 +542,11 @@ namespace CrypTool.Plugins.Anonymity
                             foreach (var row in rows)
                             {
                                 int cellValue;
-                                if (int.TryParse(row[columnIndex].ToString(), out cellValue))
+                                if (int.TryParse(row[columnIndex].ToString(), out cellValue)) 
                                 {
                                     if (cellValue >= lowerBound && cellValue <= upperBound)
                                     {
-                                        row[columnIndex] = $"[{lowerBound} - {upperBound}]";
+                                        row[columnIndex] = $"[{lowerBound} - {upperBound}]"; 
                                     }
                                 }
                             }
@@ -567,6 +582,8 @@ namespace CrypTool.Plugins.Anonymity
             }
 
             CalculateKValue();
+
+            CheckSelectedTab(tabSelec);
         }
 
 
@@ -588,9 +605,9 @@ namespace CrypTool.Plugins.Anonymity
                     int index = i;
 
                     // distinct values of the corresponding column in the table are taken
-                    List<string> distinctValues = table.Items.Cast<DataRowView>()
-                                    .Select(row => row.Row.ItemArray[i].ToString())
-                                    .Distinct().ToList();
+                    List<string> distinctValues = dt.AsEnumerable()
+                            .Select(row => row.Field<string>(i))
+                            .Distinct().ToList();
 
                     var canvas = new Canvas();
                     double currentLeft = 0.0;
@@ -674,10 +691,10 @@ namespace CrypTool.Plugins.Anonymity
                         };
 
                         Canvas.SetLeft(border, currentLeft);
-                        Canvas.SetTop(border, 0.0); 
+                        Canvas.SetTop(border, 0.0);
                         currentLeft += border.Width;
 
-  
+
                         if (j < distinctValues.Count - 1)
                         {
                             currentLeft += 20;
@@ -692,7 +709,7 @@ namespace CrypTool.Plugins.Anonymity
                     var scrollViewer = new ScrollViewer();
                     scrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
                     scrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
-                    scrollViewer.Margin = new Thickness(0, 0, 0, 10);               
+                    scrollViewer.Margin = new Thickness(0, 0, 0, 10);
                     stackPanel.Children.Add(canvas);
                     stackPanel.Children.Add(new ListView { VerticalAlignment = VerticalAlignment.Center });
                     functionContainer.Children.Add(textblock);
@@ -765,9 +782,9 @@ namespace CrypTool.Plugins.Anonymity
         // generate numeric item if it is classified as Quasi-Identifier by the user
         private void GenerateSpecificNumericItem(int index)
         {
-            List<string> distinctValues = table.Items.Cast<DataRowView>()
-                                .Select(row => row.Row.ItemArray[index].ToString())
-                                .Distinct().ToList();
+            List<string> distinctValues = dt.AsEnumerable()
+                             .Select(row => row[index].ToString())
+                             .Distinct().ToList();
             var canvas = new Canvas();
             canvas.Margin = new Thickness(0, 1, 0, 0);
             var margin = 5;
@@ -881,9 +898,9 @@ namespace CrypTool.Plugins.Anonymity
         // generate categoric item if it is classified as Quasi-Identifier by the user
         private void GenerateSpecificCategoricItem(int index)
         {
-            List<string> distinctValues = table.Items.Cast<DataRowView>()
-                                .Select(row => row.Row.ItemArray[index].ToString())
-                                .Distinct().ToList();
+            List<string> distinctValues = dt.AsEnumerable()
+                            .Select(row => row.Field<string>(index))
+                            .Distinct().ToList();
 
             var canvas = new Canvas();
             double currentLeft = 0.0;
@@ -997,7 +1014,7 @@ namespace CrypTool.Plugins.Anonymity
             }
 
 
-   
+
 
             CalculateKValue();
         }
@@ -1057,11 +1074,11 @@ namespace CrypTool.Plugins.Anonymity
                     }
                 }
             }
-            var rows = table.Items.Cast<DataRowView>().ToList();
-
+            var rows = dt.AsEnumerable().ToList();
             for (int i = 0; i < rows.Count; ++i)
             {
-                rows[i].Row[columnIndex] = init.Rows[i][columnIndex];
+                rows[i][columnIndex] = init.Rows[i][columnIndex];
+
             }
             if (groups.Count > 0)
             {
@@ -1070,16 +1087,21 @@ namespace CrypTool.Plugins.Anonymity
                     var groupValue = string.Join(" | ", group);
                     foreach (var row in rows)
                     {
-                        var cellValue = row.Row[columnIndex].ToString();
+                        var cellValue = row[columnIndex].ToString();
+
                         if (group.Contains(cellValue))
                         {
-                            row.Row[columnIndex] = groupValue;
+                            row[columnIndex] = groupValue;
+
                         }
                     }
                 }
             }
 
-            CalculateKValue();
+              CalculateKValue();
+
+
+            CheckSelectedTab(tabSelec);
         }
 
 
@@ -1091,8 +1113,9 @@ namespace CrypTool.Plugins.Anonymity
             if (labelComboboxes[index].SelectedItem != null && table.Columns.Count != 0 && labelComboboxes[index].SelectedItem.ToString() == "Identifier")
             {
                 AsteriskColumnData(index);
+                CenterColumnData(index);
             }
-            else if(labelComboboxes[index].SelectedItem != null && table.Columns.Count != 0 && labelComboboxes[index].SelectedItem.ToString() != "Identifier")
+            else if (labelComboboxes[index].SelectedItem != null && table.Columns.Count != 0 && labelComboboxes[index].SelectedItem.ToString() != "Identifier")
             {
                 // Restore column data
                 RestoreColumnData(index, init);
@@ -1102,29 +1125,50 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-     
+
 
         // This method replaces all the cell values in the given column with '*'
         private void AsteriskColumnData(int columnIndex)
         {
-            foreach (DataRowView row in table.Items)
+            foreach (DataRow row in dt.Rows)
             {
-                if (row.Row.Table.Columns.Count > columnIndex)
+                if (row.Table.Columns.Count > columnIndex)
                 {
-                    row.Row[columnIndex] = "*";
+                    row[columnIndex] = "*";
                 }
             }
+
+          
         }
+
+
+
+
+
+        private void CenterColumnData(int columnIndex)
+        {
+            if (table.Columns.Count > columnIndex)
+            {
+                Style centeredStyle = new Style(typeof(DataGridCell));
+                centeredStyle.Setters.Add(new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Center));
+                table.Columns[columnIndex].CellStyle = centeredStyle;
+            }
+        }
+
+
+
+
+
 
         // This method restores the original data in the given column
         private void RestoreColumnData(int columnIndex, DataTable init)
         {
-            for (int i = 0; i < table.Items.Count; i++)
+            for (int i = 0; i < dt.Rows.Count; i++)
             {
-                DataRowView row = (DataRowView)table.Items[i];
-                if (row.Row.Table.Columns.Count > columnIndex)
+                DataRow row = dt.Rows[i];
+                if (row.Table.Columns.Count > columnIndex)
                 {
-                    row.Row[columnIndex] = init.Rows[i][columnIndex];
+                    row[columnIndex] = init.Rows[i][columnIndex];
                 }
             }
         }
@@ -1158,14 +1202,27 @@ namespace CrypTool.Plugins.Anonymity
                 minGroupSize = 1;
             }
 
-
-
             view.MinGroupSize = minGroupSize + " Anonymity";
 
 
             int amountEquiClass = groupedRows.Count;
 
+           
+            if (minGroupSize == 1)
+            {
+                tableMessage.Text = "The table only fulfills 1-Anonymity. Each row represents a distinct equivalence class. Protection against reidentification is not given. Try to modify the data so that multiple rows are identical with regards to the Quasi-Identifiers";
 
+            }
+            else
+            {
+                tableMessage.Text = "The table fulfills " + minGroupSize + " Anonymity. There are " + amountEquiClass + " equivalence classes that contain rows which are identicial with regards to the Quasi-Identifiers";
+
+            }
+
+
+       
+
+        
 
             if (minGroupSize > 1 && amountEquiClass != 1)
             {
@@ -1213,6 +1270,8 @@ namespace CrypTool.Plugins.Anonymity
                     newRow["IsGroupEnd"] = false;
                     newTable.Rows.Add(newRow);
                 }
+
+              
             }
             else
             {
@@ -1237,18 +1296,18 @@ namespace CrypTool.Plugins.Anonymity
 
             dt = newTable;
             table.ItemsSource = dt.DefaultView;
-           // ColumnVisibility();
+            // ColumnVisibility();
             OnDataTableChanged();
 
-
+          
 
             // other anonymization methods are called here
-            CalculateDistinctLDiversity(minGroupSize);
-            CalculateEntropyLDiversity(minGroupSize);
-            CalculateRecursiveDiversity(minGroupSize);
-            GeneralAlphaKAnonymity(minGroupSize);
-            SimpleAlphaKAnonymity(minGroupSize);
-            Tcloseness(minGroupSize);
+         //   CalculateDistinctLDiversity(minGroupSize);
+         //   CalculateEntropyLDiversity(minGroupSize);
+         //   CalculateRecursiveDiversity(minGroupSize);
+         //   GeneralAlphaKAnonymity(minGroupSize);
+         //   SimpleAlphaKAnonymity(minGroupSize);
+         //   Tcloseness(minGroupSize);
         }
 
 
@@ -1637,6 +1696,7 @@ namespace CrypTool.Plugins.Anonymity
             if (sensitiveIndex == -1)
             {
                 view.TCloseness = "No";
+                tableMessage.Text = "No sensitive value is selected, therefore t-Closeness cannot be calculated";
                 return;
             }
 
@@ -1676,6 +1736,7 @@ namespace CrypTool.Plugins.Anonymity
                     emd /= 2;
                     maxEmd = Math.Max(maxEmd, emd);
                     view.TCloseness = maxEmd + " - Closeness";
+                    tableMessage.Text = "The table fulfills t-Closeness with t equal to " + maxEmd + " The value of t represents a threshold for the deviation of the distribution of a sensitive value in an equivalence class from the distribution of that value in the overall table distribution";
 
                 }
                 else if (minGroupSize > 1 && hiddenComboboxes[sensitiveIndex].SelectedItem.ToString() == "Numeric")
@@ -1706,10 +1767,14 @@ namespace CrypTool.Plugins.Anonymity
                     emd /= (orderedSensitiveValues.Count - 1);
                     maxEmd = Math.Max(maxEmd, emd);
                     view.TCloseness = maxEmd + " - Closeness";
+                    tableMessage.Text = "The table fulfills t-Closeness with t equal to " + maxEmd + " The value of t represents a threshold for the deviation of the distribution of a sensitive value in an equivalence class from the distribution of that value in the overall table distribution";
+
                 }
                 else
                 {
                     view.TCloseness = "No";
+                    tableMessage.Text = "Each row represents currently a distinct equivalence class. Try to modify the data that multiple rows are identical with regards to the Quasi-Identifiers";
+
                 }
             }
 
@@ -1717,27 +1782,381 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
-        // event handler for data transformation button click
+        /*
         private void OnDataTransformationButtonClick(object sender, RoutedEventArgs e)
         {
 
             DataTransformationView.Visibility = Visibility.Visible;
             MetricsView.Visibility = Visibility.Collapsed;
-            dataTransformationButton.IsEnabled = false;
-            metricsButton.IsEnabled = true;
+       //     metricsButton.IsEnabled = true;
         }
 
+        
 
-        // event handler for metrics button click
+
         private void OnMetricsButtonClick(object sender, RoutedEventArgs e)
         {
             DataTransformationView.Visibility = Visibility.Collapsed;
             MetricsView.Visibility = Visibility.Visible;
-            metricsButton.IsEnabled = false;
-            dataTransformationButton.IsEnabled = true;
+         //   metricsButton.IsEnabled = false;
+
         }
 
-    }
 
+        */
+
+        private void OnTabSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var tabControl = sender as TabControl; 
+            var selectedTab = tabControl.SelectedItem as TabItem; 
+
+            if (selectedTab.Header.ToString() == "l-Diversity")
+            {
+                LDiversityTable();
+            }else if(selectedTab.Header.ToString() == "k-Anonymity")
+            {
+                KAnonymityTable();
+
+            }else if(selectedTab.Header.ToString() == "t-Closeness")
+            {
+                TclosenessTable();
+            }
+        }
+
+        private void KAnonymityTable()
+        {
+
+            table.ItemsSource = dt.DefaultView;
+
+            List<int> quasiIdentifierIndexes = new List<int>();
+            for (int i = 0; i < labelComboboxes.Count; i++)
+            {
+                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Quasi-Identifier")
+                {
+                    quasiIdentifierIndexes.Add(i);
+
+                }
+            }
+            var groupedRows = dt.AsEnumerable()
+            .GroupBy(row => string.Join("|", quasiIdentifierIndexes.Select(index => row[index])))
+            .ToList();
+
+            int minGroupSize = groupedRows.Min(group => group.Count());
+
+            if (!quasiIdentifierIndexes.Any())
+            {
+                minGroupSize = 1;
+            }
+
+            int amountEquiClass = groupedRows.Count;
+            if (minGroupSize == 1)
+            {
+                tableMessage.Text = "The table only fulfills 1-Anonymity. Each row represents a distinct equivalence class. Protection against reidentification is not given. Try to modify the data so that multiple rows are identical with regards to the Quasi-Identifiers";
+
+            }
+            else
+            {
+                tableMessage.Text = "The table fulfills " + minGroupSize + " Anonymity. There are " + amountEquiClass + " equivalence classes that contain rows which are identicial with regards to the Quasi-Identifiers";
+
+            }
+
+        }
+
+
+        private void LDiversityTable()
+        {
+            int sensitiveIndex = -1;
+            for (int i = 0; i < labelComboboxes.Count; i++)
+            {
+                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Sensitive Attribute")
+                {
+                    sensitiveIndex = i;
+                    break;
+                }
+            }
+
+            if (sensitiveIndex == -1)
+            {
+                Console.WriteLine("No sensitive value");
+                tableMessage.Text = "No sensitive value is selected, therefore l-Diversity cannot be calculated";
+                return;
+            }
+
+            List<int> quasiIdentifierIndexes = new List<int>();
+            for (int i = 0; i < labelComboboxes.Count; i++)
+            {
+                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Quasi-Identifier")
+                {
+                    quasiIdentifierIndexes.Add(i);
+
+                }
+            }
+
+            var equivalenceClass = dt.AsEnumerable()
+            .GroupBy(row => string.Join("|", quasiIdentifierIndexes.Select(index => row[index])))
+            .ToList();
+
+            int minGroupSize = equivalenceClass.Min(group => group.Count());
+
+
+
+
+            var groupedRows = dt.AsEnumerable()
+                .GroupBy(row => new { GroupId = row["GroupID"], SensitiveValue = row[sensitiveIndex] })
+                .Select(group => new
+                {
+                    group.Key.GroupId,
+                    group.Key.SensitiveValue,
+                    Count = group.Count()
+                })
+                .ToList();
+
+ 
+
+            var lValueGroups = dt.AsEnumerable()
+                .GroupBy(row => row["GroupID"])
+                .Select(group => new
+                {
+                    GroupId = group.Key,
+                    LValue = group.Select(row => row[sensitiveIndex]).Distinct().Count()
+                })
+                .ToList();
+
+            DataTable newTable = dt.Clone();
+
+
+            if (!newTable.Columns.Contains("Sensitive Amount"))
+            {
+                newTable.Columns.Add("Sensitive Amount", typeof(int));
+            }
+
+            if (!newTable.Columns.Contains("l-value"))
+            {
+                newTable.Columns.Add("l-value", typeof(int));
+            }
+
+
+
+            if (minGroupSize > 1)
+            {
+
+                var equiClass = dt.AsEnumerable()
+             .GroupBy(row => row["GroupID"])
+             .Select(group => new
+             {
+                 GroupId = group.Key,
+                 DistinctValuesCount = group
+                     .Select(row => row[sensitiveIndex].ToString())
+                     .Distinct()
+                     .Count()
+             })
+             .ToList();
+
+
+                var l = equiClass.OrderBy(group => group.DistinctValuesCount).FirstOrDefault();
+
+
+                if (l.DistinctValuesCount == 1)
+                {
+                    tableMessage.Text = "The table only fulfills 1-Diversity as there exist equivalence classes in which the rows have the same sensitive value. This table is not sufficiently protected and sensitive information may be disclosed";
+                }
+
+                else
+                {
+                    tableMessage.Text = "The table fulfills " + l.DistinctValuesCount + "- Diversity. In every equivalence class there are at least " + l.DistinctValuesCount + " different sensitive values";
+                }
+
+                foreach (var group in groupedRows)
+                {
+                    DataRow groupRow = dt.AsEnumerable().First(row => row["GroupID"].Equals(group.GroupId) && row[sensitiveIndex].Equals(group.SensitiveValue));
+
+                    DataRow newRow = newTable.NewRow();
+                    newRow.ItemArray = groupRow.ItemArray;
+                    newRow["Sensitive Amount"] = group.Count;
+
+                    var lValueGroup = lValueGroups.First(g => g.GroupId.Equals(group.GroupId));
+                    if (newTable.AsEnumerable().Any(row => row["GroupID"].Equals(group.GroupId)))
+                    {
+                        newRow["l-value"] = DBNull.Value;
+                    }
+                    else
+                    {
+                        newRow["l-value"] = lValueGroup.LValue;
+                    }
+
+                    newTable.Rows.Add(newRow);
+                }
+            }
+            else
+            {
+               
+                foreach (DataRow row in dt.Rows)
+                {
+                    DataRow newRow = newTable.NewRow();
+                    newRow.ItemArray = row.ItemArray;
+                    newRow["l-value"] = 1; 
+                    newRow["Sensitive Amount"] = 1;
+                    newTable.Rows.Add(newRow);
+                }
+
+                tableMessage.Text = "The table only fulfills 1-Diversity as every row represents a distinct equivalence class. Try to modify the data to make multiple rows identical with regards to the Quasi-Identifiers";
+
+
+
+            }
+            table.ItemsSource = newTable.DefaultView;
+        }
+
+
+
+
+
+        private void TclosenessTable()
+        {
+            int sensitiveIndex = -1;
+            for (int i = 0; i < labelComboboxes.Count; i++)
+            {
+                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Sensitive Attribute")
+                {
+                    sensitiveIndex = i;
+                    break;
+                }
+            }
+
+            if (sensitiveIndex == -1)
+            {
+                Console.WriteLine("No sensitive value");
+                tableMessage.Text = "No sensitive value is selected, therefore t-Closeness cannot be calculated";
+
+                return;
+            }
+
+            List<int> quasiIdentifierIndexes = new List<int>();
+            for (int i = 0; i < labelComboboxes.Count; i++)
+            {
+                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Quasi-Identifier")
+                {
+                    quasiIdentifierIndexes.Add(i);
+                }
+            }
+
+            var equivalenceClass = dt.AsEnumerable()
+                .GroupBy(row => string.Join("|", quasiIdentifierIndexes.Select(index => row[index])))
+                .ToList();
+
+            int minGroupSize = equivalenceClass.Min(group => group.Count());
+
+            Tcloseness(minGroupSize);
+
+            var groupedRows = dt.AsEnumerable()
+                .GroupBy(row => new { GroupId = row["GroupID"], SensitiveValue = row[sensitiveIndex] })
+                .Select(group => new
+                {
+                    group.Key.GroupId,
+                    group.Key.SensitiveValue,
+                    Count = group.Count()
+                })
+                .ToList();
+
+            if (minGroupSize > 1)
+            {
+                DataTable newTable = new DataTable();
+
+                newTable.Columns.Add("IsGroupStart", typeof(bool));
+                newTable.Columns.Add("IsGroupEnd", typeof(bool));
+                newTable.Columns.Add("GroupID", typeof(int));
+                newTable.Columns.Add("Sensitive Values");
+
+                for (int i = 0; i < equivalenceClass.Count; i++)
+                {
+                    newTable.Columns.Add("Distribution EC " + (i + 1));
+                }
+
+                newTable.Columns.Add("Overall Distribution");
+
+                var distinctSensitiveValues = dt.AsEnumerable().Select(row => row[sensitiveIndex]).Distinct();
+
+                foreach (var sensitiveValue in distinctSensitiveValues)
+                {
+                    DataRow newRow = newTable.NewRow();
+                    newRow["IsGroupStart"] = false;
+                    newRow["IsGroupEnd"] = false;
+                    newRow["GroupID"] = -1;
+                    newRow["Sensitive Values"] = sensitiveValue;
+
+                    for (int i = 0; i < equivalenceClass.Count; i++)
+                    {
+                        int count = equivalenceClass[i].Count(row => row[sensitiveIndex].Equals(sensitiveValue));
+                        newRow["Distribution EC " + (i + 1)] = count == 0 ? "0" : count + "/" + equivalenceClass[i].Count();
+                    }
+
+                    int overallCount = dt.AsEnumerable().Count(row => row[sensitiveIndex].Equals(sensitiveValue));
+                    newRow["Overall Distribution"] = equivalenceClass.Count == 1
+                        ? newRow["Distribution EC 1"]
+                        : (overallCount == 0 ? "0" : overallCount + "/" + dt.Rows.Count);
+
+                    newTable.Rows.Add(newRow);
+                }
+
+                table.ItemsSource = newTable.DefaultView;
+            }
+            else
+            {
+                DataTable newTable = new DataTable();
+
+                newTable.Columns.Add("IsGroupStart", typeof(bool));
+                newTable.Columns.Add("IsGroupEnd", typeof(bool));
+                newTable.Columns.Add("GroupID", typeof(int));
+                newTable.Columns.Add("Sensitive Values");
+                newTable.Columns.Add("Overall Distribution");
+
+                var distinctSensitiveValues = dt.AsEnumerable().Select(row => row[sensitiveIndex]).Distinct();
+
+                foreach (var sensitiveValue in distinctSensitiveValues)
+                {
+                    DataRow newRow = newTable.NewRow();
+                    newRow["IsGroupStart"] = false;
+                    newRow["IsGroupEnd"] = false;
+                    newRow["GroupID"] = -1;
+                    newRow["Sensitive Values"] = sensitiveValue;
+
+                    int overallCount = dt.AsEnumerable().Count(row => row[sensitiveIndex].Equals(sensitiveValue));
+                    newRow["Overall Distribution"] = overallCount == 0 ? "0" : overallCount + "/" + dt.Rows.Count;
+
+                    newTable.Rows.Add(newRow);
+                }
+
+                table.ItemsSource = newTable.DefaultView;
+            }
+        }
+
+
+
+
+        private void CheckSelectedTab(TabControl tabControl)
+        {
+            var selectedTab = tabControl.SelectedItem as TabItem;
+
+            if (selectedTab != null)
+            {
+                if (selectedTab.Header.ToString() == "l-Diversity")
+                {
+                    LDiversityTable();
+                }
+                else if (selectedTab.Header.ToString() == "k-Anonymity")
+                {
+
+
+                    KAnonymityTable();
+
+                }else if (selectedTab.Header.ToString() == "t-Closeness")
+                {
+                    TclosenessTable();
+                }
+            }
+        }
+
+
+    }
 
 }
