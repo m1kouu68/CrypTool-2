@@ -52,12 +52,36 @@
                                 </DataTemplate>
                             </TabItem.HeaderTemplate>
                         </TabItem>
-                        <TabItem Header="l-Diversity">
+                        <TabItem Header="Distinct l-Diversity">
                             <TabItem.HeaderTemplate>
                                 <DataTemplate>
                                     <TextBlock
                     Foreground="Black"
-                    Text="l-Diversity"
+                    Text="Distinct l-Diversity"
+                    Padding="10"
+                    Margin="10,0,0,0"/>
+                                </DataTemplate>
+                            </TabItem.HeaderTemplate>
+
+                        </TabItem>
+                        <TabItem Header="Entropy l-Diversity">
+                            <TabItem.HeaderTemplate>
+                                <DataTemplate>
+                                    <TextBlock
+                    Foreground="Black"
+                    Text="Entropy l-Diversity"
+                    Padding="10"
+                    Margin="10,0,0,0"/>
+                                </DataTemplate>
+                            </TabItem.HeaderTemplate>
+
+                        </TabItem>
+                        <TabItem Header="Recursive (c,l)-Diversity">
+                            <TabItem.HeaderTemplate>
+                                <DataTemplate>
+                                    <TextBlock
+                    Foreground="Black"
+                    Text="Recursive (c,l)-Diversity"
                     Padding="10"
                     Margin="10,0,0,0"/>
                                 </DataTemplate>
@@ -97,9 +121,10 @@
                 x:Name="table"
                 Margin="10"
                 FontSize="16"
-                HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch"
-                IsReadOnly="True">
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                IsReadOnly="True"
+                GridLinesVisibility="Vertical">
                             <DataGrid.RowStyle>
                                 <Style TargetType="DataGridRow">
                                     <Setter Property="Background">
