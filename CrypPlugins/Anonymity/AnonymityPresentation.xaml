@@ -26,11 +26,7 @@
                 </DataTrigger>
             </ControlTemplate.Triggers>
         </ControlTemplate>
-        <vm:ViewModel x:Key="ViewModel" />
     </UserControl.Resources>
-    <UserControl.DataContext>
-        <StaticResource ResourceKey="ViewModel" />
-    </UserControl.DataContext>
     <ScrollViewer>
         <Grid x:Name="MainPresi">
             <Grid.RowDefinitions>
@@ -210,7 +206,7 @@
                 </StackPanel>
                     </Border>
             </Grid>
-            <views:Metrics x:Name="MetricsView" Grid.Row="1" Visibility="Collapsed"/>
+
         </Grid>
     </ScrollViewer>
 </UserControl>

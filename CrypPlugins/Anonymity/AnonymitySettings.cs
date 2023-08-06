@@ -74,11 +74,6 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
-
-
-
-
-
         #endregion
 
         #region Events

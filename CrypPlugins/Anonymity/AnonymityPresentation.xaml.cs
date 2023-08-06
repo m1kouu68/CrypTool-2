@@ -39,7 +39,7 @@ namespace CrypTool.Plugins.Anonymity
         private List<string> _headerList = new List<string>();
         private DataTable dt;
         private string[] headers;
-        private ViewModel view;
+ 
         private List<Label> identMessageLabels = new List<Label>();
 
 
@@ -48,8 +48,7 @@ namespace CrypTool.Plugins.Anonymity
         public AnonymityPresentation()
         {
             InitializeComponent();
-            this.view = new ViewModel();
-            this.DataContext = this.view;
+
         }
 
 
@@ -367,7 +366,7 @@ namespace CrypTool.Plugins.Anonymity
                     canvas.HorizontalAlignment = HorizontalAlignment.Left;
                     canvas.VerticalAlignment = VerticalAlignment.Top;
 
-                    SortNumericStrings(distinctValues);
+                    SortNumericValues(distinctValues);
 
 
                     var textblock = new TextBlock();
@@ -394,8 +393,8 @@ namespace CrypTool.Plugins.Anonymity
                         numTextblock.Padding = new Thickness(10); // Padding hinzufügen
                         numTextblock.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 
-                        double textBlockHeight = numTextblock.DesiredSize.Height;
-                        double topMargin = (canvas.Height - textBlockHeight) / 2;
+                        double numTextblockHeight = numTextblock.DesiredSize.Height;
+                        double topMargin = (canvas.Height - numTextblockHeight) / 2;
 
                         Canvas.SetLeft(numTextblock, margin);
                         Canvas.SetTop(numTextblock, topMargin);
@@ -438,12 +437,12 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
-        public void SortNumericStrings(List<string> values)
+        public void SortNumericValues(List<string> values)
         {
-            // Find the maximum value in the list.
+
             decimal max = values.Max(val => decimal.Parse(val));
 
-            // Determine the parsing method based on the maximum value.
+      
             if (max <= int.MaxValue)
             {
                 values.Sort((a, b) => int.Parse(a).CompareTo(int.Parse(b)));
@@ -457,15 +456,6 @@ namespace CrypTool.Plugins.Anonymity
                 values.Sort((a, b) => decimal.Parse(a).CompareTo(decimal.Parse(b)));
             }
         }
-
-
-
-
-
-
-
-
-
 
         private void InverseGrouping(Canvas canvas, int columnIndex)
         {
@@ -489,31 +479,23 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
-
-
-
-
-
-
         // rectangle mousleftbuttondown event handler
         private void Rect_MouseLeftButtonDown(object sender, MouseButtonEventArgs e, Canvas canvas, int columnIndex)
         {
             var rect = sender as Rectangle;
 
 
-            HandleRectangleColoring(rect);
+            RectangleColoring(rect);
             HandleGrouping(rect, canvas, columnIndex);
 
         }
-
-
 
 
         /* handle rectangle coloring
          * 
          */
 
-        private void HandleRectangleColoring(Rectangle rect)
+        private void RectangleColoring(Rectangle rect)
         {
             if (rect.Fill == Brushes.LightGray)
             {
@@ -548,8 +530,8 @@ namespace CrypTool.Plugins.Anonymity
             }
 
 
-            int lowerBound = int.MaxValue;
-            int upperBound = int.MinValue;
+            int first = int.MaxValue;
+            int second = int.MinValue;
 
 
             bool inGroup = false;
@@ -569,8 +551,8 @@ namespace CrypTool.Plugins.Anonymity
                         if (prevTextBlock != null)
                         {
                             int value = int.Parse(prevTextBlock.Text);
-                            lowerBound = Math.Min(lowerBound, value);
-                            upperBound = Math.Max(upperBound, value);
+                            first = Math.Min(first, value);
+                            second = Math.Max(second, value);
                         }
                     }
                     else
@@ -579,7 +561,7 @@ namespace CrypTool.Plugins.Anonymity
                         {
 
                             int value = int.Parse(prevTextBlock.Text);
-                            upperBound = Math.Max(upperBound, value);
+                            second = Math.Max(second, value);
 
 
                             foreach (var row in rows)
@@ -587,17 +569,17 @@ namespace CrypTool.Plugins.Anonymity
                                 int cellValue;
                                 if (int.TryParse(row[columnIndex].ToString(), out cellValue))
                                 {
-                                    if (cellValue >= lowerBound && cellValue <= upperBound)
+                                    if (cellValue >= first && cellValue <= second)
                                     {
-                                        row[columnIndex] = $"[{lowerBound} - {upperBound}]";
+                                        row[columnIndex] = $"[{first} - {second}]";
                                     }
                                 }
                             }
 
 
                             inGroup = false;
-                            lowerBound = int.MaxValue;
-                            upperBound = int.MinValue;
+                            first = int.MaxValue;
+                            second = int.MinValue;
                         }
                     }
                 }
@@ -608,7 +590,7 @@ namespace CrypTool.Plugins.Anonymity
             {
 
                 int value = int.Parse(prevTextBlock.Text);
-                upperBound = Math.Max(upperBound, value);
+                second = Math.Max(second, value);
 
 
                 foreach (var row in rows)
@@ -616,9 +598,9 @@ namespace CrypTool.Plugins.Anonymity
                     int cellValue;
                     if (int.TryParse(row[columnIndex].ToString(), out cellValue))
                     {
-                        if (cellValue >= lowerBound && cellValue <= upperBound)
+                        if (cellValue >= first && cellValue <= second)
                         {
-                            row[columnIndex] = $"[{lowerBound} - {upperBound}]";
+                            row[columnIndex] = $"[{first} - {second}]";
                         }
                     }
                 }
@@ -628,15 +610,6 @@ namespace CrypTool.Plugins.Anonymity
 
             CheckSelectedTab(tabSelec);
         }
-
-
-
-
-
-
-
-
-
 
         // categoric items are created
         private void GenerateCategoricItems()
@@ -680,11 +653,11 @@ namespace CrypTool.Plugins.Anonymity
                         border.CornerRadius = new CornerRadius(5);
                         border.Padding = new Thickness(10);
 
-                        var textBlockInside = new TextBlock() { Text = col, Foreground = Brushes.White, FontSize = 14 };
-                        textBlockInside.Measure(new Size(Double.PositiveInfinity, Double.PositiveInfinity));
-                        double textWidth = textBlockInside.DesiredSize.Width;
+                        var text = new TextBlock() { Text = col, Foreground = Brushes.White, FontSize = 14 };
+                        text.Measure(new Size(Double.PositiveInfinity, Double.PositiveInfinity));
+                        double textWidth = text.DesiredSize.Width;
 
-                        border.Child = textBlockInside;
+                        border.Child = text;
                         border.Width = textWidth + 20;
 
                         border.MouseLeftButtonDown += (sender, e) =>
@@ -703,13 +676,13 @@ namespace CrypTool.Plugins.Anonymity
                             if (isDragging)
                             {
                                 Point currentPosition = e.GetPosition(canvas);
-                                // calculate change in position
+                       
                                 double x = currentPosition.X - startPoint.X;
                                 double y = currentPosition.Y - startPoint.Y;
 
                                 double newX = Canvas.GetLeft(border) + x;
                                 double newY = Canvas.GetTop(border) + y;
-                                // if new position is within bounds, update position
+                   
                                 if (newX >= 0 && newX <= canvas.ActualWidth - border.ActualWidth && newY >= 0 && newY <= canvas.ActualHeight - border.ActualHeight)
                                 {
 
@@ -767,8 +740,6 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
-
-
         // remove categoric item if it is not classified as Quasi-Identifier by the user
         private void RemoveSpecificCategoricItem(string columnName)
         {
@@ -793,8 +764,6 @@ namespace CrypTool.Plugins.Anonymity
 
             CalculateKValue();
         }
-
-
 
         // remove numeric item if it is not classified as Quasi-Identifier by the user
         private void RemoveSpecificNumericItem(string columnName)
@@ -821,7 +790,6 @@ namespace CrypTool.Plugins.Anonymity
             CalculateKValue();
         }
 
-
         // generate numeric item if it is classified as Quasi-Identifier by the user
         private void GenerateSpecificNumericItem(int index)
         {
@@ -836,7 +804,7 @@ namespace CrypTool.Plugins.Anonymity
             canvas.HorizontalAlignment = HorizontalAlignment.Left;
             canvas.VerticalAlignment = VerticalAlignment.Top;
 
-            SortNumericStrings(distinctValues);
+            SortNumericValues(distinctValues);
 
             var textblock = new TextBlock();
             textblock.FontWeight = FontWeights.DemiBold;
@@ -914,9 +882,6 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
-
-
-
         // generate categoric item if it is classified as Quasi-Identifier by the user
         private void GenerateSpecificCategoricItem(int index)
         {
@@ -951,11 +916,11 @@ namespace CrypTool.Plugins.Anonymity
                 border.CornerRadius = new CornerRadius(5);
                 border.Padding = new Thickness(10);
 
-                var textBlockInside = new TextBlock() { Text = col, Foreground = Brushes.White, FontSize = 14 };
-                textBlockInside.Measure(new Size(Double.PositiveInfinity, Double.PositiveInfinity));
-                double textWidth = textBlockInside.DesiredSize.Width;
+                var text = new TextBlock() { Text = col, Foreground = Brushes.White, FontSize = 14 };
+                text.Measure(new Size(Double.PositiveInfinity, Double.PositiveInfinity));
+                double textWidth = text.DesiredSize.Width;
 
-                border.Child = textBlockInside;
+                border.Child = text;
                 border.Width = textWidth + 20;
 
                 border.MouseLeftButtonDown += (sender, e) =>
@@ -1035,18 +1000,8 @@ namespace CrypTool.Plugins.Anonymity
                 functionContainer.Children.Insert(index + 1, textblock);
             }
 
-
-
-
             CalculateKValue();
         }
-
-
-
-
-
-
-
 
         // categoric column in datatable is updated according to intersecting or non-intersecting of categoric items
         private void UpdateCategoricColumn(Canvas canvas, int columnIndex)
@@ -1126,8 +1081,6 @@ namespace CrypTool.Plugins.Anonymity
             CheckSelectedTab(tabSelec);
         }
 
-
-
         private void SpecificColumnVisibility(int index)
         {
             DataTable init = initialTable.Copy();
@@ -1143,11 +1096,6 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
-
-
-
-
-
         // This method replaces all the cell values in the given column with '*'
         private void AsteriskColumnData(int columnIndex)
         {
@@ -1162,17 +1110,13 @@ namespace CrypTool.Plugins.Anonymity
 
         }
 
-
-
-
-
         private void CenterColumnData(int columnIndex)
         {
             if (table.Columns.Count > columnIndex)
             {
-                Style centeredStyle = new Style(typeof(DataGridCell));
-                centeredStyle.Setters.Add(new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Center));
-                table.Columns[columnIndex].CellStyle = centeredStyle;
+                Style center = new Style(typeof(DataGridCell));
+                center.Setters.Add(new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Center));
+                table.Columns[columnIndex].CellStyle = center;
             }
         }
 
@@ -1182,19 +1126,11 @@ namespace CrypTool.Plugins.Anonymity
 
             if (column != null)
             {
-                Style centeredStyle = new Style(typeof(DataGridCell));
-                centeredStyle.Setters.Add(new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Center));
-                column.CellStyle = centeredStyle;
-            }
-            else
-            {
-                Console.WriteLine($"Column '{columnName}' not found.");
+                Style center = new Style(typeof(DataGridCell));
+                center.Setters.Add(new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Center));
+                column.CellStyle = center;
             }
         }
-
-
-
-
 
         // This method restores the original data in the given column
         private void RestoreColumnData(int columnIndex, DataTable init)
@@ -1208,11 +1144,6 @@ namespace CrypTool.Plugins.Anonymity
                 }
             }
         }
-
-
-
-
-
 
         // calculation of k for k-Anonymity
         private void CalculateKValue()
@@ -1235,20 +1166,13 @@ namespace CrypTool.Plugins.Anonymity
 
             int maxGroupSize = groupedRows.Max(group => group.Count());
 
-
             if (!quasiIdentifierIndexes.Any())
             {
                 minGroupSize = 1;
             }
 
-
-
             int amountEquiClass = groupedRows.Count;
 
-
-           
-
-       
             DataTable newTable = dt.Clone();
 
             if (!newTable.Columns.Contains("GroupID"))
@@ -1322,10 +1246,6 @@ namespace CrypTool.Plugins.Anonymity
             
 
         }
-
-
-   
-
         private void OnTabSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var tabControl = sender as TabControl;
@@ -1361,17 +1281,12 @@ namespace CrypTool.Plugins.Anonymity
                 ColumnKValueCollapsed();
                 OnDataTableChanged();
             }
-
-
         }
 
         private void KAnonymityTable()
         {
 
             table.ItemsSource = dt.DefaultView;
-
- 
-
             for (int a = 0; a < labelComboboxes.Count; a++)
             {
                 if (labelComboboxes[a].SelectedItem != null && labelComboboxes[a].SelectedItem.ToString() == "Identifier")
@@ -1379,9 +1294,6 @@ namespace CrypTool.Plugins.Anonymity
                     CenterColumnData(a);
                 }
             }
-
-
-
             List<int> quasiIdentifierIndexes = new List<int>();
             for (int i = 0; i < labelComboboxes.Count; i++)
             {
@@ -1422,19 +1334,9 @@ namespace CrypTool.Plugins.Anonymity
                 tableMessage.Text = "The table meets the criteria of k=" + minGroupSize + "-anonymity, as the smallest k-value for any equivalence class is " + minGroupSize + ". In total, there are " + amountEquiClass + " equivalence classes that are identical with respect to the Quasi-Identifier columns.";
 
             }
-
-
-
         }
-
-
         private void DistinctLDiversityTable()
         {
-
-
-
-
-
             int sensitiveIndex = -1;
             for (int i = 0; i < labelComboboxes.Count; i++)
             {
@@ -1451,7 +1353,6 @@ namespace CrypTool.Plugins.Anonymity
                 tableMessage.Text = "No sensitive column has been assigned, so l-Diversity cannot be calculated. Please mark a column as sensitive so that l-Diversity can be determined";
                 return;
             }
-
             List<int> quasiIdentifierIndexes = new List<int>();
             for (int i = 0; i < labelComboboxes.Count; i++)
             {
@@ -1461,16 +1362,11 @@ namespace CrypTool.Plugins.Anonymity
 
                 }
             }
-
             var equivalenceClass = dt.AsEnumerable()
             .GroupBy(row => string.Join("|", quasiIdentifierIndexes.Select(index => row[index])))
             .ToList();
 
             int minGroupSize = equivalenceClass.Min(group => group.Count());
-
-
-
-
             var groupedRows = dt.AsEnumerable()
                 .GroupBy(row => new { GroupId = row["GroupID"], SensitiveValue = row[sensitiveIndex] })
                 .Select(group => new
@@ -1480,10 +1376,7 @@ namespace CrypTool.Plugins.Anonymity
                     Count = group.Count()
                 })
                 .ToList();
-
-
-
-            var lValueGroups = dt.AsEnumerable()
+            var lValue = dt.AsEnumerable()
                 .GroupBy(row => row["GroupID"])
                 .Select(group => new
                 {
@@ -1493,8 +1386,6 @@ namespace CrypTool.Plugins.Anonymity
                 .ToList();
 
             DataTable newTable = dt.Clone();
-
-
             if (!newTable.Columns.Contains("Frequency"))
             {
                 newTable.Columns.Add("Frequency", typeof(int));
@@ -1504,9 +1395,6 @@ namespace CrypTool.Plugins.Anonymity
             {
                 newTable.Columns.Add("l-value", typeof(int));
             }
-
-
-
             if (minGroupSize > 1)
             {
 
@@ -1521,8 +1409,6 @@ namespace CrypTool.Plugins.Anonymity
                      .Count()
              })
              .ToList();
-
-
                 var l = equiClass.OrderBy(group => group.DistinctValuesCount).FirstOrDefault();
 
 
@@ -1534,7 +1420,6 @@ namespace CrypTool.Plugins.Anonymity
                     tableMessage.Text = "The table meets " + l.DistinctValuesCount + "-Diversity, as there are at least " + l.DistinctValuesCount + " different sensitive values in the equivalence class";
 
                 }
-
                 else
                 {
                     tableMessage.Text = "The table meets " + l.DistinctValuesCount + "-Diversity, as there are at least " + l.DistinctValuesCount + " different sensitive values in every equivalence class";
@@ -1543,8 +1428,6 @@ namespace CrypTool.Plugins.Anonymity
                 var groupsWithRows = groupedRows
                  .GroupBy(g => g.GroupId)
                    .ToList();
-
-
                 foreach (var groupWithRows in groupsWithRows)
                 {
                     var rowsInGroup = groupWithRows.ToList();
@@ -1561,7 +1444,7 @@ namespace CrypTool.Plugins.Anonymity
 
                         if (rowGroup == middleRowGroup)
                         {
-                            var lValueGroup = lValueGroups.First(g => g.GroupId.Equals(rowGroup.GroupId));
+                            var lValueGroup = lValue.First(g => g.GroupId.Equals(rowGroup.GroupId));
                             newRow["l-value"] = lValueGroup.LValue;
                         }
                         else
@@ -1587,8 +1470,6 @@ namespace CrypTool.Plugins.Anonymity
 
                 tableMessage.Text = "The table only satisfies 1-Diversity since each row represents a distinct equivalence class. Please modify the data to ensure that multiple rows are identical with respect to the Quasi-Identifier columns";
 
-
-
             }
             table.ItemsSource = newTable.DefaultView;
 
@@ -1603,38 +1484,30 @@ namespace CrypTool.Plugins.Anonymity
             CenterColumnDataByName("l-value");
             OnDataTableChanged();
         }
-
-
-
-
         private void ColumnKValueCollapsed()
         {
 
-            DataGridColumn kValueColumn = table.Columns.FirstOrDefault(col => col.Header.ToString() == "k-Value");
-            if (kValueColumn != null)
+            DataGridColumn kValue = table.Columns.FirstOrDefault(col => col.Header.ToString() == "k-Value");
+            if (kValue != null)
             {
-                kValueColumn.Visibility = Visibility.Collapsed;
+                kValue.Visibility = Visibility.Collapsed;
             }
 
 
         }
-
-
         private void ColumnKValueVisible()
         {
 
-            DataGridColumn kValueColumn = table.Columns.FirstOrDefault(col => col.Header.ToString() == "k-Value");
-            if (kValueColumn != null)
+            DataGridColumn kValue = table.Columns.FirstOrDefault(col => col.Header.ToString() == "k-Value");
+            if (kValue != null)
             {
-                kValueColumn.Visibility = Visibility.Visible;
+                kValue.Visibility = Visibility.Visible;
             }
 
 
             CenterColumnDataByName("k-Value");
 
         }
-
-
         private void EntropyLDiversityTable()
         {
             int sensitiveIndex = -1;
@@ -1646,7 +1519,6 @@ namespace CrypTool.Plugins.Anonymity
                     break;
                 }
             }
-
             if (sensitiveIndex == -1)
             {
                
@@ -1663,15 +1535,15 @@ namespace CrypTool.Plugins.Anonymity
                 }
             }
 
-            var equivalenceClass = dt.AsEnumerable()
+            var equiClass = dt.AsEnumerable()
                 .GroupBy(row => string.Join("|", quasiIdentifierIndexes.Select(index => row[index])))
                 .ToList();
 
-            int l = equivalenceClass.Min(group => group.Select(row => row[sensitiveIndex]).Distinct().Count());
+            int lValue = equiClass.Min(group => group.Select(row => row[sensitiveIndex]).Distinct().Count());
 
             List<double> entropyList = new List<double>();
 
-            int minGroupSize = equivalenceClass.Min(group => group.Count());
+            int minGroupSize = equiClass.Min(group => group.Count());
 
             DataTable newTable = dt.Clone();
 
@@ -1762,10 +1634,9 @@ namespace CrypTool.Plugins.Anonymity
 
         foreach (double e in entropyList)
                 {
-                    Console.WriteLine("Entropy: " + e);
-                    Console.WriteLine("l: " + l);
 
-                    if(e >= Math.Log(l, 2))
+
+                    if(e >= Math.Log(lValue, 2))
                     {
                         b = true;
                     }
@@ -1777,12 +1648,12 @@ namespace CrypTool.Plugins.Anonymity
 
         if(b == true)
                 {
-                    tableMessage.Text = "The table meets Entropy-l-Diversity as the entropy of every equivalence class is greater or equal to l=" + l;
+                    tableMessage.Text = "The table meets Entropy-l-Diversity as the entropy of every equivalence class is greater or equal to l=" + lValue;
 
                 }
                 else
                 {
-                    tableMessage.Text = "Entropy-l-Diversity is not given as the condition that the entropy of every equivalence class is greater or equal to l=" + l +" is not fulfilled";
+                    tableMessage.Text = "Entropy-l-Diversity is not given as the condition that the entropy of every equivalence class is greater or equal to l=" + lValue + " is not fulfilled";
 
                 }
 
@@ -1795,8 +1666,7 @@ namespace CrypTool.Plugins.Anonymity
                     DataRow newRow = newTable.NewRow();
                     newRow.ItemArray = row.ItemArray;
                     newRow["Frequency (p)"] = "1/1";
-
-                    double relativeFrequency = 1.0; // since each row is its own group
+                    double relativeFrequency = 1.0;
                     double entropyValue = -relativeFrequency * Math.Log(relativeFrequency, 2);
                     newRow["-p * log (p)"] = entropyValue;
                     newRow["Entropy"] = entropyValue;
@@ -1857,11 +1727,11 @@ namespace CrypTool.Plugins.Anonymity
 
             var distinctSensitiveValues = dt.AsEnumerable().Select(row => row[sensitiveIndex]).Distinct().ToList();
 
-            var equivalenceClass = dt.AsEnumerable()
+            var equiClass = dt.AsEnumerable()
                 .GroupBy(row => string.Join("|", quasiIdentifierIndexes.Select(index => row[index])))
                 .ToList();
 
-            int minGroupSize = equivalenceClass.Min(group => group.Count());
+            int minGroupSize = equiClass.Min(group => group.Count());
 
             DataTable newTable = dt.Clone();
 
@@ -1882,7 +1752,7 @@ namespace CrypTool.Plugins.Anonymity
 
             if (minGroupSize > 1 && hiddenComboboxes[sensitiveIndex].SelectedItem.ToString() == "Categoric")
             {
-                foreach (var group in equivalenceClass)
+                foreach (var group in equiClass)
                 {
                     var groupedRows = group
                         .GroupBy(row => row[sensitiveIndex])
@@ -1895,7 +1765,7 @@ namespace CrypTool.Plugins.Anonymity
                         .ToList();
 
                     double tValue = 0;
-                    int initialRowCount = newTable.Rows.Count; // Count the rows before adding new ones
+                    int initialRowCount = newTable.Rows.Count; 
                     foreach (var grpRow in groupedRows)
                     {
                         DataRow groupRow = group.First(row => row[sensitiveIndex].Equals(grpRow.SensitiveValue));
@@ -1915,10 +1785,10 @@ namespace CrypTool.Plugins.Anonymity
                         newTable.Rows.Add(newRow);
                     }
 
-                    var sensitiveValuesInGroup = group.Select(row => row[sensitiveIndex]).Distinct().ToList();
-                    var missingSensitiveValues = distinctSensitiveValues.Except(sensitiveValuesInGroup);
+                    var existingSensitive = group.Select(row => row[sensitiveIndex]).Distinct().ToList();
+                    var missingSensitive = distinctSensitiveValues.Except(existingSensitive);
 
-                    foreach (var missingSensitiveValue in missingSensitiveValues)
+                    foreach (var missingSensitiveValue in missingSensitive)
                     {
                         DataRow missingRow = newTable.NewRow();
                         missingRow.ItemArray = group.First().ItemArray;
@@ -1934,24 +1804,16 @@ namespace CrypTool.Plugins.Anonymity
 
                         newTable.Rows.Add(missingRow);
                     }
-
-                    // Compute the middle row index for the current group
                     int middleRowIndex = initialRowCount + ((newTable.Rows.Count - initialRowCount) - 1) / 2;
-
-                    // If rows were added for the current group, assign the tValue to the middle row
                     if (newTable.Rows.Count > initialRowCount)
                     {
                         newTable.Rows[middleRowIndex]["t-Value"] = tValue;
                     }
                 }
-           
-
                 List<double> tValues = newTable.AsEnumerable()
                     .Where(row => row["t-Value"] != DBNull.Value)
                     .Select(row => double.Parse(row["t-Value"].ToString()))
                     .ToList();
-
-         
                 double maxTValue;
                 if (tValues.Any())
                 {
@@ -1965,27 +1827,24 @@ namespace CrypTool.Plugins.Anonymity
 
                 tableMessage.Text = "The table meets t-Closeness with a t-value of " + maxTValue + ". The highest t-value found in any equivalence class determines the overall t-value for the datatable.";
 
-
             }
             else if (minGroupSize > 1 && hiddenComboboxes[sensitiveIndex].SelectedItem.ToString() == "Numeric")
             {
-                foreach (var group in equivalenceClass)
+                foreach (var group in equiClass)
                 {
-                    var orderedSensitiveValues = dt.AsEnumerable()
+                    var orderedSensitive = dt.AsEnumerable()
                         .Select(row => double.Parse(row[sensitiveIndex].ToString()))
                         .Distinct()
                         .OrderBy(val => val)
                         .ToList();
 
                     var sensitiveValuesInGroup = group.Select(row => double.Parse(row[sensitiveIndex].ToString())).Distinct().ToList();
-                    var missingSensitiveValues = orderedSensitiveValues.Except(sensitiveValuesInGroup);
+                    var missingSensitiveValues = orderedSensitive.Except(sensitiveValuesInGroup);
 
-                    // Calculate t-Value
-                    double tValue = CalculateTValueNumeric(orderedSensitiveValues, group, dt, sensitiveIndex);
+                    double tValue = CalculateTValueNumeric(orderedSensitive, group, dt, sensitiveIndex);
 
-                    int initialRowCount = newTable.Rows.Count; // Count the rows before adding new ones
+                    int initialRowCount = newTable.Rows.Count; 
 
-                    // Add all sensitive values, including the first one
                     foreach (var value in sensitiveValuesInGroup)
                     {
                         DataRow existingRow = newTable.NewRow();
@@ -2000,7 +1859,7 @@ namespace CrypTool.Plugins.Anonymity
                         newTable.Rows.Add(existingRow);
                     }
 
-                    // Add missing sensitive values
+  
                     foreach (var value in missingSensitiveValues)
                     {
                         DataRow missingRow = newTable.NewRow();
@@ -2014,11 +1873,7 @@ namespace CrypTool.Plugins.Anonymity
 
                         newTable.Rows.Add(missingRow);
                     }
-
-                    // Compute the middle row index for the current group
                     int middleRowIndex = initialRowCount + ((newTable.Rows.Count - initialRowCount) - 1) / 2;
-
-                    // If rows were added for the current group, assign the tValue to the middle row
                     if (newTable.Rows.Count > initialRowCount)
                     {
                         newTable.Rows[middleRowIndex]["t-Value"] = tValue;
@@ -2039,11 +1894,7 @@ namespace CrypTool.Plugins.Anonymity
                 {
                     maxTValue = 0;
                 }
-
-
                 tableMessage.Text = "The table meets t-Closeness with a t-value of " + maxTValue + ". The highest t-value found in any equivalence class determines the overall t-value for the datatable.";
-
-
             }
 
             else
@@ -2062,7 +1913,6 @@ namespace CrypTool.Plugins.Anonymity
                         double tValue = CalculateTValueCategoricSingleRowGroup(dt, sensitiveIndex, distinctSensitiveValues, dtRow);
                         newRow["t-Value"] = tValue;
                     }
-                    // wenn das Attribut numerisch ist
                     else if (hiddenComboboxes[sensitiveIndex].SelectedItem.ToString() == "Numeric")
                     {
 
@@ -2167,10 +2017,6 @@ namespace CrypTool.Plugins.Anonymity
             return tValue;
         }
 
-
-
-
-
         public double CalculateTValueNumericSingleRowGroup(DataRow currentRow, DataTable dt, int sensitiveIndex, List<double> orderedSensitiveValues)
         {
             double tValue = 0;
@@ -2188,7 +2034,6 @@ namespace CrypTool.Plugins.Anonymity
             tValue /= (orderedSensitiveValues.Count - 1);
             if (tValue * 1000 != Math.Floor(tValue * 1000))
             {
-                // Wenn ja, auf 3 Stellen nach dem Komma aufrunden
                 tValue = Math.Round(tValue, 3, MidpointRounding.AwayFromZero);
             }
 
@@ -2196,16 +2041,13 @@ namespace CrypTool.Plugins.Anonymity
 
             return tValue;
         }
-
-
-
         private double CalculateTValueCategoricSingleRowGroup(DataTable dt, int sensitiveIndex, List<object> distinctSensitiveValues, DataRow dtRow)
         {
             double tValue = 0;
             foreach (var sensitiveValue in distinctSensitiveValues)
             {
-                int countForSensitiveValue = dt.AsEnumerable().Count(rowData => rowData[sensitiveIndex].Equals(sensitiveValue));
-                double overallDistribution = countForSensitiveValue / (double)dt.Rows.Count;
+                int countSensitive = dt.AsEnumerable().Count(rowData => rowData[sensitiveIndex].Equals(sensitiveValue));
+                double overallDistribution = countSensitive / (double)dt.Rows.Count;
                 if (sensitiveValue.Equals(dtRow[sensitiveIndex]))
                 {
                     tValue += 1 - overallDistribution;
@@ -2216,27 +2058,14 @@ namespace CrypTool.Plugins.Anonymity
                 }
             }
             tValue = tValue / 2;
-
-            // Prüfen, ob mehr als 3 Stellen nach dem Komma vorhanden sind
             if (tValue * 1000 != Math.Floor(tValue * 1000))
             {
-                // Wenn ja, auf 3 Stellen nach dem Komma aufrunden
+
                 tValue = Math.Round(tValue, 3, MidpointRounding.AwayFromZero);
             }
 
             return tValue;
         }
-
-
-
-
-
-
-
-
-
-
-
 
         private void RecursiveLDiversityTable()
         {
@@ -2308,13 +2137,8 @@ namespace CrypTool.Plugins.Anonymity
                     .ToList();
 
                 var l = equiClass.OrderBy(group => group.DistinctValuesCount).FirstOrDefault();
-
-              
-              
-                
                tableMessage.Text = "Recursive (c,l)-Diversity is fulfilled for any c with n1 < c * (nl + ... nm)";
                 
-
                 foreach (var group in groupedRows)
                 {
                     DataRow groupRow = dt.AsEnumerable().First(row => row["GroupID"].Equals(group.GroupId) && row[sensitiveIndex].Equals(group.SensitiveValue));
@@ -2326,7 +2150,6 @@ namespace CrypTool.Plugins.Anonymity
                     newTable.Rows.Add(newRow);
                 }
 
-                // Sort rows in Frequency column within each GroupID
                 var groupedNewTable = newTable.AsEnumerable()
                     .GroupBy(row => row["GroupID"])
                     .ToList();
@@ -2382,7 +2205,7 @@ namespace CrypTool.Plugins.Anonymity
                 {
                     DataRow newRow = newTable.NewRow();
                     newRow.ItemArray = row.ItemArray;
-                    newRow["c-value"] = 1.0; // Set "c-value" for the single group case
+                    newRow["c-value"] = 1.0;
                     newRow["Frequency"] = 1;
                     newTable.Rows.Add(newRow);
                 }

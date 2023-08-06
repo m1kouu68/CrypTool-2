@@ -82,11 +82,7 @@
     </Compile>
     <Compile Include="AnonymitySettings.cs" />
     <Compile Include="Helper\EquivalenceClassColor.cs" />
-    <Compile Include="Metrics.xaml.cs">
-      <DependentUpon>Metrics.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CrypPluginBase\CrypPluginBase.csproj">
@@ -117,10 +113,6 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="AnonymityPresentation.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Metrics.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
