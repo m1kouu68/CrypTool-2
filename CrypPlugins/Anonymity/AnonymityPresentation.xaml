@@ -107,6 +107,7 @@
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
                 <Grid.ColumnDefinitions>
@@ -143,7 +144,7 @@
     x:Name="tableMessage"
     Grid.Row="2" 
     Grid.Column="0" 
-    Margin="10,5,10,40"
+    Margin="20,5,10,40"
     TextWrapping="Wrap"              
     FontWeight="Bold" 
     FontSize="14"/>
@@ -169,15 +170,16 @@
 
                 </StackPanel>
 
-
-                <StackPanel Grid.Row="3" Margin="10,50,10,10">
-                    <TextBlock Margin="0,10,0,10"
-                                   FontSize= "18"  
+                <Border BorderBrush="Black" BorderThickness="2" Padding="2"  Grid.Row="3" Margin="10,50,10,10">
+                    <StackPanel >
+                        <TextBlock Margin="0,10,0,10"
+                                   FontSize= "18"
+                                    HorizontalAlignment="Center"
                                    FontWeight="DemiBold"
                                    Foreground="Black" >Categoric Columns</TextBlock>
 
 
-                    <StackPanel
+                        <StackPanel
                 x:Name="functionContainer"
       
                  HorizontalAlignment="Stretch"
@@ -186,13 +188,16 @@
                Grid.RowSpan="2">
 
 
+                        </StackPanel>
                     </StackPanel>
-                </StackPanel>
-                <StackPanel Grid.Row="3" Grid.Column="1" Margin="100,50,10,10">
+                </Border>
+                <Border BorderBrush="Black" BorderThickness="2" Padding="2" Grid.Row="3" Grid.Column="1" Margin="100,50,10,10">
+                    <StackPanel >
 
-                    <TextBlock Margin="0,0,0,10"
+                        <TextBlock Margin="0,10,0,10"
                                    FontSize= "18"  
                                    FontWeight="DemiBold"
+                               HorizontalAlignment="Center"
                                    Foreground="Black" >Numeric Columns</TextBlock>
                     <StackPanel
                 x:Name="numericContainer"
@@ -203,6 +208,7 @@
                Grid.RowSpan="2">
                     </StackPanel>
                 </StackPanel>
+                    </Border>
             </Grid>
             <views:Metrics x:Name="MetricsView" Grid.Row="1" Visibility="Collapsed"/>
         </Grid>

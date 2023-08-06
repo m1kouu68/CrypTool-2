@@ -74,6 +74,8 @@ namespace CrypTool.Plugins.Anonymity
                 childStackPanel.Children.Clear();
             }
             numericContainer.Children.Clear();
+
+  
         }
 
         // create the datatable in the presentation
@@ -82,8 +84,8 @@ namespace CrypTool.Plugins.Anonymity
 
             dt = new DataTable();
 
-            // split the input string into an array of lines
-            InputCsv = InputCsv.Replace(" ", "");
+     
+       
             string[] lines = InputCsv.Split(new[] { "\r\n", RowSeperator }, StringSplitOptions.RemoveEmptyEntries);
 
 
@@ -172,6 +174,9 @@ namespace CrypTool.Plugins.Anonymity
             initialTable = dt.Copy();
             GenerateNumericItems();
             GenerateCategoricItems();
+
+
+            OnDataTableChanged();
         }
 
 
@@ -192,7 +197,7 @@ namespace CrypTool.Plugins.Anonymity
             ComboBox currentBox = sender as ComboBox;
             if (currentBox.SelectedItem.ToString() == "Sensitive Attribute")
             {
-                foreach (ComboBox box in labelComboboxes)  
+                foreach (ComboBox box in labelComboboxes)
                 {
                     if (box != currentBox && box.SelectedItem.ToString() == "Sensitive Attribute")
                     {
@@ -245,7 +250,7 @@ namespace CrypTool.Plugins.Anonymity
                     SpecificColumnVisibility(i);
                     RemoveSpecificCategoricItem(headers[i]);
                     CheckSelectedTab(tabSelec);
-                   
+
                 }
                 else if (labelComboboxes[i] == combo && combo.SelectedItem.ToString() != "Quasi-Identifier" && hiddenComboboxes[i].SelectedItem.ToString() == "Numeric")
                 {
@@ -257,7 +262,7 @@ namespace CrypTool.Plugins.Anonymity
                     RemoveSpecificNumericItem(headers[i]);
                     CheckSelectedTab(tabSelec);
 
-                   
+
                 }
                 else if (labelComboboxes[i] == combo && combo.SelectedItem.ToString() == "Quasi-Identifier" && hiddenComboboxes[i].SelectedItem.ToString() == "Categoric")
                 {
@@ -580,11 +585,11 @@ namespace CrypTool.Plugins.Anonymity
                             foreach (var row in rows)
                             {
                                 int cellValue;
-                                if (int.TryParse(row[columnIndex].ToString(), out cellValue)) 
+                                if (int.TryParse(row[columnIndex].ToString(), out cellValue))
                                 {
                                     if (cellValue >= lowerBound && cellValue <= upperBound)
                                     {
-                                        row[columnIndex] = $"[{lowerBound} - {upperBound}]"; 
+                                        row[columnIndex] = $"[{lowerBound} - {upperBound}]";
                                     }
                                 }
                             }
@@ -1115,7 +1120,7 @@ namespace CrypTool.Plugins.Anonymity
                 }
             }
 
-              CalculateKValue();
+            CalculateKValue();
 
 
             CheckSelectedTab(tabSelec);
@@ -1154,7 +1159,7 @@ namespace CrypTool.Plugins.Anonymity
                 }
             }
 
-          
+
         }
 
 
@@ -1171,6 +1176,21 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
+        private void CenterColumnDataByName(string columnName)
+        {
+            var column = table.Columns.FirstOrDefault(c => c.Header != null && c.Header.ToString() == columnName);
+
+            if (column != null)
+            {
+                Style centeredStyle = new Style(typeof(DataGridCell));
+                centeredStyle.Setters.Add(new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Center));
+                column.CellStyle = centeredStyle;
+            }
+            else
+            {
+                Console.WriteLine($"Column '{columnName}' not found.");
+            }
+        }
 
 
 
@@ -1213,43 +1233,22 @@ namespace CrypTool.Plugins.Anonymity
 
             int minGroupSize = groupedRows.Min(group => group.Count());
 
+            int maxGroupSize = groupedRows.Max(group => group.Count());
+
+
             if (!quasiIdentifierIndexes.Any())
             {
                 minGroupSize = 1;
             }
 
-            view.MinGroupSize = minGroupSize + " Anonymity";
 
 
             int amountEquiClass = groupedRows.Count;
 
+
            
-            if (minGroupSize == 1)
-            {
-                tableMessage.Text = "The table only fulfills 1-Anonymity. Each row represents a distinct equivalence class. Protection against reidentification is not given. Try to modify the data so that multiple rows are identical with regards to the Quasi-Identifiers";
 
-            }
-            else
-            {
-                tableMessage.Text = "The table fulfills " + minGroupSize + " Anonymity. There are " + amountEquiClass + " equivalence classes that contain rows which are identicial with regards to the Quasi-Identifiers";
-
-            }
-
-            if (minGroupSize > 1 && amountEquiClass != 1)
-            {
-                view.AmountEquiClass = amountEquiClass + " Equivalence Classes";
-
-            }
-            else if (minGroupSize > 1 && amountEquiClass == 1)
-            {
-                view.AmountEquiClass = amountEquiClass + " Equivalence Class";
-            }
-            else
-            {
-                view.AmountEquiClass = "No Equivalence Classes available";
-            }
-
-
+       
             DataTable newTable = dt.Clone();
 
             if (!newTable.Columns.Contains("GroupID"))
@@ -1291,6 +1290,12 @@ namespace CrypTool.Plugins.Anonymity
                 foreach (var group in groupedRows)
                 {
                     var groupRows = group.ToList();
+                    int middleIndex = groupRows.Count / 2;
+                    if (groupRows.Count % 2 == 0) 
+                    {
+                        middleIndex -= 1;
+                    }
+
                     for (int i = 0; i < groupRows.Count; i++)
                     {
                         DataRow newRow = newTable.NewRow();
@@ -1298,7 +1303,14 @@ namespace CrypTool.Plugins.Anonymity
                         newRow["GroupID"] = groupID;
                         newRow["IsGroupStart"] = i == 0;
                         newRow["IsGroupEnd"] = i == groupRows.Count - 1;
-                        newRow["k-Value"] = i == 0 ? groupRows.Count : (object)DBNull.Value;
+                        if (i == middleIndex) 
+                        {
+                            newRow["k-Value"] = groupRows.Count;
+                        }
+                        else
+                        {
+                            newRow["k-Value"] = (object)DBNull.Value;
+                        }
                         newTable.Rows.Add(newRow);
                     }
                     groupID++;
@@ -1307,537 +1319,50 @@ namespace CrypTool.Plugins.Anonymity
             dt = newTable;
             table.ItemsSource = dt.DefaultView;
             OnDataTableChanged();
-
-
             
-        }
-
-
-        // distinct l diversity calculation
-        private void CalculateDistinctLDiversity(int minGroupSize)
-        {
-
-            int sensitiveIndex = -1;
-            for (int i = 0; i < labelComboboxes.Count; i++)
-            {
-                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Sensitive Attribute")
-                {
-                    sensitiveIndex = i;
-                    break;
-                }
-            }
-
-
-            if (sensitiveIndex == -1)
-            {
-
-                view.DistinctLValue = "No";
-                return;
-            }
-
-
-            if (minGroupSize > 1)
-            {
-
-                var groupedRows = dt.AsEnumerable()
-                    .GroupBy(row => row["GroupID"])
-                    .Select(group => new
-                    {
-                        GroupId = group.Key,
-                        DistinctValuesCount = group
-                            .Select(row => row[sensitiveIndex].ToString())
-                            .Distinct()
-                            .Count()
-                    })
-                    .ToList();
-
-
-                var l = groupedRows.OrderBy(group => group.DistinctValuesCount).FirstOrDefault();
-
-
-                if (l.DistinctValuesCount == 1)
-                {
-                    view.DistinctLValue = "No";
-                }
-
-                else
-                {
-                    view.DistinctLValue = "" + l.DistinctValuesCount + "- Diversity";
-                }
-            }
-            else
-            {
-                view.DistinctLValue = "No";
-
-            }
-        }
-
-
-
-        // entropy l diversity calculation
-        private void CalculateEntropyLDiversity(int minGroupSize)
-        {
-            int sensitiveIndex = -1;
-            for (int i = 0; i < labelComboboxes.Count; i++)
-            {
-                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Sensitive Attribute")
-                {
-                    sensitiveIndex = i;
-                    break;
-                }
-            }
-
-            if (sensitiveIndex == -1)
-            {
-                view.EntropyLValue = "No";
-                return;
-            }
-
-            if (minGroupSize > 1)
-            {
-                var groupedRows = dt.AsEnumerable()
-                    .GroupBy(row => row["GroupID"])
-                    .ToList();
-
-                double minEntropy = double.MaxValue;
-                int l = int.MaxValue;
-                foreach (var group in groupedRows)
-                {
-                    var valueCounts = group
-                        .Select(row => row[sensitiveIndex].ToString())
-                        .GroupBy(val => val)
-                        .ToDictionary(g => g.Key, g => g.Count());
-
-                    double total = valueCounts.Values.Sum();
-                    double entropy = 0;
-                    foreach (var count in valueCounts.Values)
-                    {
-                        double probability = count / total;
-                        entropy -= probability * Math.Log(probability, 2.0);
-                    }
-
-                    if (entropy < minEntropy)
-                    {
-                        minEntropy = entropy;
-                    }
-
-                    int distinctValues = valueCounts.Count;
-                    if (distinctValues < l)
-                    {
-                        l = distinctValues;
-                    }
-
-
-                }
-
-                if (l == 1)
-                {
-                    view.EntropyLValue = "No";
-                    return;
-
-                }
-                else if (minEntropy >= Math.Log(l, 2.0))
-                {
-
-                    view.EntropyLValue = "Datatable is Entropy-L-Divers with smallest Entropy being " + minEntropy;
-
-                }
-                else
-                {
-
-                    view.EntropyLValue = "No Entropy-L-Diversity with smallest Entropy being " + minEntropy;
-                }
-            }
-            else
-            {
-                view.EntropyLValue = "No";
-            }
-        }
-
-
-        // recursive (c,l) diversity calculation
-        private void CalculateRecursiveDiversity(int minGroupSize)
-        {
-            int sensitiveIndex = -1;
-            for (int i = 0; i < labelComboboxes.Count; i++)
-            {
-                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Sensitive Attribute")
-                {
-                    sensitiveIndex = i;
-                    break;
-                }
-            }
-
-            if (sensitiveIndex == -1)
-            {
-                view.RecursiveLValue = "No";
-                return;
-            }
-
-            if (minGroupSize > 1)
-            {
-                var groupedRows = dt.AsEnumerable()
-                    .GroupBy(row => row["GroupID"])
-                    .ToList();
-
-                int l = int.MaxValue;
-                List<int> minGroupCounts = null;
-                foreach (var group in groupedRows)
-                {
-                    var valueCounts = group
-                        .Select(row => row[sensitiveIndex].ToString())
-                        .GroupBy(val => val)
-                        .Select(g => g.Count())
-                        .OrderByDescending(count => count)
-                        .ToList();
-
-                    int distinctValues = valueCounts.Count;
-                    if (distinctValues < l)
-                    {
-                        l = distinctValues;
-                        minGroupCounts = valueCounts;
-                    }
-                }
-
-                if (minGroupCounts != null)
-                {
-                    var nM = minGroupCounts.Skip(l - 1).ToList();  // new list in which the the highest amount in minGroupCounts is not available anymore
-                    double c = (double)minGroupCounts.First() / nM.Sum();  // mingroupCounts.First() represents the highest amount
-
-
-                    bool cSmall = true;
-                    foreach (var group in groupedRows)
-                    {
-                        var valueCounts = group
-                            .Select(row => row[sensitiveIndex].ToString())
-                            .GroupBy(val => val)
-                            .Select(g => g.Count())
-                            .OrderByDescending(count => count)
-                            .ToList();
-
-                        if (valueCounts.First() / valueCounts.Skip(l - 1).Sum() < c)
-                        {
-                            cSmall = false;
-                            break;
-                        }
-                    }
-
-                    var message = "n1 < c * (";
-                    for (int i = 0; i < nM.Count; i++)
-                    {
-                        if (i != 0)
-                        {
-                            message += " + ";
-                        }
-                        message += "n" + (i + l).ToString();
-                    }
-                    message += ")";
-
-                    if (cSmall)
-                    {
-                        message += " with c > " + c.ToString();
-
-                        view.RecursiveLValue = message;
-                    }
-                    else
-                    {
-
-                        view.RecursiveLValue = "No";
-                    }
-                }
-            }
-            else
-            {
-                view.RecursiveLValue = "No";
-            }
-        }
-
-
-
-
-
-        // simple alpha k anonymity calculation
-        private void SimpleAlphaKAnonymity(int minGroupSize)
-        {
-
-
-            view.SimpleAlphaK = "";
-
-            int sensitiveIndex = -1;
-            for (int i = 0; i < labelComboboxes.Count; i++)
-            {
-                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Sensitive Attribute")
-                {
-                    sensitiveIndex = i;
-                    break;
-                }
-            }
-
-            if (sensitiveIndex == -1)
-            {
-                view.SimpleAlphaK = "No";
-                return;
-            }
-
-            if (minGroupSize > 1)
-            {
-                var groupedRows = dt.AsEnumerable()
-                    .GroupBy(row => row["GroupID"])
-                    .ToList();
-
-                Dictionary<string, double> maxFrequency = new Dictionary<string, double>();
-
-                foreach (var group in groupedRows)
-                {
-                    var valueCounts = group
-                        .Select(row => row[sensitiveIndex].ToString())
-                        .GroupBy(val => val)
-                        .ToDictionary(g => g.Key, g => g.Count());
-
-                    double total = valueCounts.Values.Sum();
-                    foreach (var k in valueCounts)
-                    {
-                        double frequency = k.Value / total;
-                        if (!maxFrequency.ContainsKey(k.Key) || maxFrequency[k.Key] < frequency)
-                        {
-                            maxFrequency[k.Key] = frequency;
-                        }
-                    }
-                }
-
-                foreach (var k in maxFrequency)
-                {
-
-                    string sensValue = k.Key;
-                    double alphaValue = k.Value;
-                    string message = sensValue + ": " + "(" + alphaValue + ", " + minGroupSize + ")- Anonymity \n";
-                    view.SimpleAlphaK += message;
-                }
-            }
-            else
-            {
-                view.SimpleAlphaK = "No";
-            }
-        }
-
-
-        // general alpha k anonymity calculation
-        private void GeneralAlphaKAnonymity(int minGroupSize)
-        {
-            int sensitiveIndex = -1;
-            for (int i = 0; i < labelComboboxes.Count; i++)
-            {
-                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Sensitive Attribute")
-                {
-                    sensitiveIndex = i;
-                    break;
-                }
-            }
-
-            if (sensitiveIndex == -1)
-            {
-
-                view.GeneralAlphaK = "No";
-                return;
-            }
-
-            if (minGroupSize > 1)
-            {
-                var groupedRows = dt.AsEnumerable()
-                    .GroupBy(row => row["GroupID"])
-                    .ToList();
-
-                double maxFrequency = 0;
-                foreach (var group in groupedRows)
-                {
-                    var valueCounts = group
-                        .Select(row => row[sensitiveIndex].ToString())
-                        .GroupBy(val => val)
-                        .ToDictionary(g => g.Key, g => g.Count());
-
-                    double total = valueCounts.Values.Sum();
-                    foreach (var count in valueCounts.Values)
-                    {
-                        double frequency = count / total;
-                        if (frequency > maxFrequency)
-                        {
-                            maxFrequency = frequency;
-                        }
-                    }
-                }
-
-
-                view.GeneralAlphaK = "(" + maxFrequency + " , " + minGroupSize + ")- Anonymity";
-
-
-            }
-            else
-            {
-                view.GeneralAlphaK = "No";
-            }
-
-
-
 
         }
 
 
-        // T closeness calculation
-        private void Tcloseness(int minGroupSize)
-        {
-            int sensitiveIndex = -1;
-            for (int i = 0; i < labelComboboxes.Count; i++)
-            {
-                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Sensitive Attribute")
-                {
-                    sensitiveIndex = i;
-                    break;
-                }
-            }
-
-            if (sensitiveIndex == -1)
-            {
-                view.TCloseness = "No";
-                tableMessage.Text = "No sensitive value is selected, therefore t-Closeness cannot be calculated";
-                return;
-            }
-
-            double total = dt.Rows.Count;
-
-            var overallCounts = dt.AsEnumerable()
-                .Select(row => row[sensitiveIndex].ToString())
-                .GroupBy(val => val)
-                .ToDictionary(g => g.Key, g => g.Count());
-
-            var groupedRows = dt.AsEnumerable()
-                .GroupBy(row => row["GroupID"])
-                .ToList();
-
-            double maxEmd = 0;
-
-            foreach (var group in groupedRows)
-            {
-                double groupTotal = group.Count();
-
-                var groupCounts = group
-                    .Select(row => row[sensitiveIndex].ToString())
-                    .GroupBy(val => val)
-                    .ToDictionary(g => g.Key, g => g.Count());
-
-                if (minGroupSize > 1 && hiddenComboboxes[sensitiveIndex].SelectedItem.ToString() == "Categoric")
-                {
-                    double emd = 0;
-
-                    foreach (var overallCount in overallCounts)
-                    {
-                        double groupCount = groupCounts.ContainsKey(overallCount.Key) ? groupCounts[overallCount.Key] : 0;
-                        emd += Math.Abs(groupCount / groupTotal - overallCount.Value / total);
-
-
-                    }
-                    emd /= 2;
-                    maxEmd = Math.Max(maxEmd, emd);
-                    view.TCloseness = maxEmd + " - Closeness";
-                    tableMessage.Text = "The table fulfills t-Closeness with t equal to " + maxEmd + " The value of t represents a threshold for the deviation of the distribution of a sensitive value in an equivalence class from the distribution of that value in the overall table distribution";
-
-                }
-                else if (minGroupSize > 1 && hiddenComboboxes[sensitiveIndex].SelectedItem.ToString() == "Numeric")
-                {
-                    var orderedSensitiveValues = dt.AsEnumerable()
-                        .Select(row => double.Parse(row[sensitiveIndex].ToString()))
-                        .Distinct()
-                        .OrderBy(val => val)
-                        .ToList();
-
-                    double r = 0;
-                    double emd = 0;
-
-                    int counter = 0;
-                    foreach (var value in orderedSensitiveValues)
-                    {
-                        counter++;
-                        if (counter == orderedSensitiveValues.Count)
-                            break;
-
-                        double overallCount = overallCounts.ContainsKey(value.ToString()) ? overallCounts[value.ToString()] : 0;
-                        double groupCount = groupCounts.ContainsKey(value.ToString()) ? groupCounts[value.ToString()] : 0;
-
-                        r += groupCount / groupTotal - overallCount / total;
-
-                        emd += Math.Abs(r);
-                    }
-                    emd /= (orderedSensitiveValues.Count - 1);
-                    maxEmd = Math.Max(maxEmd, emd);
-                    view.TCloseness = maxEmd + " - Closeness";
-                    tableMessage.Text = "The table fulfills t-Closeness with t equal to " + maxEmd + " The value of t represents a threshold for the deviation of the distribution of a sensitive value in an equivalence class from the distribution of that value in the overall table distribution";
-
-                }
-                else
-                {
-                    view.TCloseness = "No";
-                    tableMessage.Text = "Each row represents currently a distinct equivalence class. Try to modify the data that multiple rows are identical with regards to the Quasi-Identifiers";
-
-                }
-            }
-
-
-        }
-
-
-        /*
-        private void OnDataTransformationButtonClick(object sender, RoutedEventArgs e)
-        {
-
-            DataTransformationView.Visibility = Visibility.Visible;
-            MetricsView.Visibility = Visibility.Collapsed;
-       //     metricsButton.IsEnabled = true;
-        }
-
-        
-
-
-        private void OnMetricsButtonClick(object sender, RoutedEventArgs e)
-        {
-            DataTransformationView.Visibility = Visibility.Collapsed;
-            MetricsView.Visibility = Visibility.Visible;
-         //   metricsButton.IsEnabled = false;
-
-        }
-
-
-        */
+   
 
         private void OnTabSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var tabControl = sender as TabControl; 
-            var selectedTab = tabControl.SelectedItem as TabItem; 
+            var tabControl = sender as TabControl;
+            var selectedTab = tabControl.SelectedItem as TabItem;
 
             if (selectedTab.Header.ToString() == "Distinct l-Diversity")
             {
                 DistinctLDiversityTable();
                 ColumnKValueCollapsed();
+                OnDataTableChanged();
             }
-            else if(selectedTab.Header.ToString() == "k-Anonymity")
+            else if (selectedTab.Header.ToString() == "k-Anonymity")
             {
                 KAnonymityTable();
                 ColumnKValueVisible();
-
+                OnDataTableChanged();
             }
-            else if(selectedTab.Header.ToString() == "t-Closeness")
+            else if (selectedTab.Header.ToString() == "t-Closeness")
             {
                 TClosenessTable();
                 ColumnKValueCollapsed();
-
+                OnDataTableChanged();
             }
             else if (selectedTab.Header.ToString() == "Entropy l-Diversity")
             {
                 EntropyLDiversityTable();
                 ColumnKValueCollapsed();
-            }else if (selectedTab.Header.ToString() == "Recursive (c,l)-Diversity")
+                OnDataTableChanged();
+            }
+            else if (selectedTab.Header.ToString() == "Recursive (c,l)-Diversity")
             {
                 RecursiveLDiversityTable();
                 ColumnKValueCollapsed();
+                OnDataTableChanged();
             }
+
+
         }
 
         private void KAnonymityTable()
@@ -1845,6 +1370,7 @@ namespace CrypTool.Plugins.Anonymity
 
             table.ItemsSource = dt.DefaultView;
 
+ 
 
             for (int a = 0; a < labelComboboxes.Count; a++)
             {
@@ -1876,17 +1402,28 @@ namespace CrypTool.Plugins.Anonymity
                 minGroupSize = 1;
             }
 
+            int maxGroupSize = groupedRows.Max(group => group.Count());
+
             int amountEquiClass = groupedRows.Count;
             if (minGroupSize == 1)
             {
-                tableMessage.Text = "The table only fulfills 1-Anonymity. Each row represents a distinct equivalence class. Protection against reidentification is not given. Try to modify the data so that multiple rows are identical with regards to the Quasi-Identifiers";
+                tableMessage.Text = "The table only meets the criteria of 1-Anonymity, where each row represents a distinct equivalence class. Please modify the data to make multiple rows identical with respect to the columns designated as Quasi-Identifiers.";
 
             }
+            else if (minGroupSize == maxGroupSize)
+            {
+                tableMessage.Text = "The table complies with k=" + minGroupSize + "-anonymity, as there is one equivalence class with a k-value of " + minGroupSize + ", meaning that there are " + minGroupSize + " rows that are identical with respect to the Quasi-Identifier columns.";
+
+            }
+
+
             else
             {
-                tableMessage.Text = "The table fulfills " + minGroupSize + " Anonymity. There are " + amountEquiClass + " equivalence classes that contain rows which are identicial with regards to the Quasi-Identifiers";
+                tableMessage.Text = "The table meets the criteria of k=" + minGroupSize + "-anonymity, as the smallest k-value for any equivalence class is " + minGroupSize + ". In total, there are " + amountEquiClass + " equivalence classes that are identical with respect to the Quasi-Identifier columns.";
 
             }
+
+
 
         }
 
@@ -1896,7 +1433,7 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-     
+
 
             int sensitiveIndex = -1;
             for (int i = 0; i < labelComboboxes.Count; i++)
@@ -1910,8 +1447,8 @@ namespace CrypTool.Plugins.Anonymity
 
             if (sensitiveIndex == -1)
             {
-                Console.WriteLine("No sensitive value");
-                tableMessage.Text = "No sensitive value is selected, therefore l-Diversity cannot be calculated";
+
+                tableMessage.Text = "No sensitive column has been assigned, so l-Diversity cannot be calculated. Please mark a column as sensitive so that l-Diversity can be determined";
                 return;
             }
 
@@ -1944,7 +1481,7 @@ namespace CrypTool.Plugins.Anonymity
                 })
                 .ToList();
 
- 
+
 
             var lValueGroups = dt.AsEnumerable()
                 .GroupBy(row => row["GroupID"])
@@ -1991,48 +1528,64 @@ namespace CrypTool.Plugins.Anonymity
 
                 if (l.DistinctValuesCount == 1)
                 {
-                    tableMessage.Text = "The table only fulfills 1-Diversity as there exist equivalence classes in which the rows have the same sensitive value.";
+                    tableMessage.Text = "The table only meets the criteria for 1-Diversity, as there is an equivalence class where every row has the same sensitive value. Please modify the data to ensure that different sensitive values are present within each equivalence class";
+                }else if(equiClass.Count == 1)
+                {
+                    tableMessage.Text = "The table meets " + l.DistinctValuesCount + "-Diversity, as there are at least " + l.DistinctValuesCount + " different sensitive values in the equivalence class";
+
                 }
 
                 else
                 {
-                    tableMessage.Text = "The table fulfills " + l.DistinctValuesCount + "- Diversity. In every equivalence class there are at least " + l.DistinctValuesCount + " different sensitive values";
+                    tableMessage.Text = "The table meets " + l.DistinctValuesCount + "-Diversity, as there are at least " + l.DistinctValuesCount + " different sensitive values in every equivalence class";
                 }
 
-                foreach (var group in groupedRows)
+                var groupsWithRows = groupedRows
+                 .GroupBy(g => g.GroupId)
+                   .ToList();
+
+
+                foreach (var groupWithRows in groupsWithRows)
                 {
-                    DataRow groupRow = dt.AsEnumerable().First(row => row["GroupID"].Equals(group.GroupId) && row[sensitiveIndex].Equals(group.SensitiveValue));
+                    var rowsInGroup = groupWithRows.ToList();
+                    int middleIndex = (rowsInGroup.Count - 1) / 2;  
+                    var middleRowGroup = rowsInGroup[middleIndex];
 
-                    DataRow newRow = newTable.NewRow();
-                    newRow.ItemArray = groupRow.ItemArray;
-                    newRow["Frequency"] = group.Count;
-
-                    var lValueGroup = lValueGroups.First(g => g.GroupId.Equals(group.GroupId));
-                    if (newTable.AsEnumerable().Any(row => row["GroupID"].Equals(group.GroupId)))
+                    foreach (var rowGroup in rowsInGroup)
                     {
-                        newRow["l-value"] = DBNull.Value;
-                    }
-                    else
-                    {
-                        newRow["l-value"] = lValueGroup.LValue;
-                    }
+                        DataRow groupRow = dt.AsEnumerable().First(row => row["GroupID"].Equals(rowGroup.GroupId) && row[sensitiveIndex].Equals(rowGroup.SensitiveValue));
 
-                    newTable.Rows.Add(newRow);
+                        DataRow newRow = newTable.NewRow();
+                        newRow.ItemArray = groupRow.ItemArray;
+                        newRow["Frequency"] = rowGroup.Count;
+
+                        if (rowGroup == middleRowGroup)
+                        {
+                            var lValueGroup = lValueGroups.First(g => g.GroupId.Equals(rowGroup.GroupId));
+                            newRow["l-value"] = lValueGroup.LValue;
+                        }
+                        else
+                        {
+                            newRow["l-value"] = DBNull.Value;
+                        }
+
+                        newTable.Rows.Add(newRow);
+                    }
                 }
             }
             else
             {
-               
+
                 foreach (DataRow row in dt.Rows)
                 {
                     DataRow newRow = newTable.NewRow();
                     newRow.ItemArray = row.ItemArray;
-                    newRow["l-value"] = 1; 
+                    newRow["l-value"] = 1;
                     newRow["Frequency"] = 1;
                     newTable.Rows.Add(newRow);
                 }
 
-                tableMessage.Text = "The table only fulfills 1-Diversity as every row represents a distinct equivalence class. Try to modify the data to make multiple rows identical with regards to the Quasi-Identifiers";
+                tableMessage.Text = "The table only satisfies 1-Diversity since each row represents a distinct equivalence class. Please modify the data to ensure that multiple rows are identical with respect to the Quasi-Identifier columns";
 
 
 
@@ -2047,8 +1600,8 @@ namespace CrypTool.Plugins.Anonymity
                 }
             }
 
-        
-
+            CenterColumnDataByName("l-value");
+            OnDataTableChanged();
         }
 
 
@@ -2077,6 +1630,8 @@ namespace CrypTool.Plugins.Anonymity
             }
 
 
+            CenterColumnDataByName("k-Value");
+
         }
 
 
@@ -2094,7 +1649,7 @@ namespace CrypTool.Plugins.Anonymity
 
             if (sensitiveIndex == -1)
             {
-                Console.WriteLine("No sensitive value");
+               
                 tableMessage.Text = "No sensitive value is selected, therefore l-Diversity cannot be calculated";
                 return;
             }
@@ -2111,6 +1666,10 @@ namespace CrypTool.Plugins.Anonymity
             var equivalenceClass = dt.AsEnumerable()
                 .GroupBy(row => string.Join("|", quasiIdentifierIndexes.Select(index => row[index])))
                 .ToList();
+
+            int l = equivalenceClass.Min(group => group.Select(row => row[sensitiveIndex]).Distinct().Count());
+
+            List<double> entropyList = new List<double>();
 
             int minGroupSize = equivalenceClass.Min(group => group.Count());
 
@@ -2134,40 +1693,100 @@ namespace CrypTool.Plugins.Anonymity
             if (minGroupSize > 1)
             {
                 var groupedRows = dt.AsEnumerable()
-                    .GroupBy(row => new { GroupId = row["GroupID"], SensitiveValue = row[sensitiveIndex] })
-                    .Select(group => new
-                    {
-                        group.Key.GroupId,
-                        group.Key.SensitiveValue,
-                        Count = group.Count(),
-                        Total = dt.AsEnumerable().Count(row => row["GroupID"].Equals(group.Key.GroupId))
-                    })
+         .GroupBy(row => new { GroupId = row["GroupID"], SensitiveValue = row[sensitiveIndex] })
+         .Select(group => new
+         {
+             group.Key.GroupId,
+             group.Key.SensitiveValue,
+             Count = group.Count(),
+             Total = dt.AsEnumerable().Count(row => row["GroupID"].Equals(group.Key.GroupId))
+         })
+         .ToList();
+
+               
+
+                var groupsByGroupId = groupedRows
+                    .GroupBy(row => row.GroupId)
                     .ToList();
 
-                foreach (var group in groupedRows)
+                foreach (var groupSet in groupsByGroupId)
                 {
-                    DataRow groupRow = dt.AsEnumerable().First(row => row["GroupID"].Equals(group.GroupId) && row[sensitiveIndex].Equals(group.SensitiveValue));
-
-                    DataRow newRow = newTable.NewRow();
-                    newRow.ItemArray = groupRow.ItemArray;
-
-                    double relativeFrequency = (double)group.Count / group.Total;
-                    newRow["Frequency (p)"] = $"{group.Count}/{group.Total}";
-
-                    double entropyValue = -relativeFrequency * Math.Log(relativeFrequency, 2);
-                    newRow["-p * log (p)"] = entropyValue;
-
-                    if (!newTable.AsEnumerable().Any(row => row["GroupID"].Equals(group.GroupId)))
+                    int middleIndex = (groupSet.Count() - 1) / 2;
+                    double entropy = groupSet.Sum(g => -g.Count / (double)g.Total * Math.Log(g.Count / (double)g.Total, 2));
+                    if (entropy * 1000 != Math.Floor(entropy * 1000))
                     {
-                        newRow["Entropy"] = groupedRows.Where(g => g.GroupId.Equals(group.GroupId)).Sum(g => -g.Count / (double)g.Total * Math.Log(g.Count / (double)g.Total, 2));
+
+                        entropy = Math.Round(entropy, 3, MidpointRounding.AwayFromZero);
+                    }
+
+                    entropyList.Add(entropy);
+
+
+                    for (int i = 0; i < groupSet.Count(); i++)
+                    {
+                        var group = groupSet.ElementAt(i);
+                        DataRow groupRow = dt.AsEnumerable().First(row => row["GroupID"].Equals(group.GroupId) && row[sensitiveIndex].Equals(group.SensitiveValue));
+                        DataRow newRow = newTable.NewRow();
+                        newRow.ItemArray = groupRow.ItemArray;
+
+                        double relativeFrequency = (double)group.Count / group.Total;
+                        newRow["Frequency (p)"] = $"{group.Count}/{group.Total}";
+                        double entropyValue = -relativeFrequency * Math.Log(relativeFrequency, 2);
+                        if (entropyValue * 1000 != Math.Floor(entropyValue * 1000))
+                        {
+
+                            entropyValue = Math.Round(entropyValue, 3, MidpointRounding.AwayFromZero);
+                        }
+
+
+
+                        newRow["-p * log (p)"] = entropyValue;
+
+
+
+                        if (i == middleIndex)
+                        {
+                            newRow["Entropy"] = entropy;
+                        }
+                        else
+                        {
+                            newRow["Entropy"] = DBNull.Value;
+                        }
+
+                        newTable.Rows.Add(newRow);
+                    }
+                }
+
+
+                bool b = false;
+
+        foreach (double e in entropyList)
+                {
+                    Console.WriteLine("Entropy: " + e);
+                    Console.WriteLine("l: " + l);
+
+                    if(e >= Math.Log(l, 2))
+                    {
+                        b = true;
                     }
                     else
                     {
-                        newRow["Entropy"] = DBNull.Value;
+                        b = false;
                     }
-
-                    newTable.Rows.Add(newRow);
                 }
+
+        if(b == true)
+                {
+                    tableMessage.Text = "The table meets Entropy-l-Diversity as the entropy of every equivalence class is greater or equal to l=" + l;
+
+                }
+                else
+                {
+                    tableMessage.Text = "Entropy-l-Diversity is not given as the condition that the entropy of every equivalence class is greater or equal to l=" + l +" is not fulfilled";
+
+                }
+
+
             }
             else
             {
@@ -2184,6 +1803,10 @@ namespace CrypTool.Plugins.Anonymity
 
                     newTable.Rows.Add(newRow);
                 }
+
+
+                tableMessage.Text = "Every row represents a single equivalence class right now. Please modify the data to ensure that multiple rows are identical with respect to the Quasi-Identifiers";
+
             }
 
             table.ItemsSource = newTable.DefaultView;
@@ -2195,6 +1818,12 @@ namespace CrypTool.Plugins.Anonymity
                     CenterColumnData(a);
                 }
             }
+
+
+
+
+            CenterColumnDataByName("Entropy");
+
         }
 
 
@@ -2212,7 +1841,7 @@ namespace CrypTool.Plugins.Anonymity
 
             if (sensitiveIndex == -1)
             {
-                Console.WriteLine("No sensitive value");
+
                 tableMessage.Text = "No sensitive value is selected, therefore t-Closeness cannot be calculated";
                 return;
             }
@@ -2266,6 +1895,7 @@ namespace CrypTool.Plugins.Anonymity
                         .ToList();
 
                     double tValue = 0;
+                    int initialRowCount = newTable.Rows.Count; // Count the rows before adding new ones
                     foreach (var grpRow in groupedRows)
                     {
                         DataRow groupRow = group.First(row => row[sensitiveIndex].Equals(grpRow.SensitiveValue));
@@ -2280,7 +1910,7 @@ namespace CrypTool.Plugins.Anonymity
                         newRow["Overall Distribution"] = overallCount == 0 ? "0" : overallCount + "/" + dt.Rows.Count;
 
                         double overallDistribution = overallCount / (double)dt.Rows.Count;
-                        tValue += Math.Abs(relativeFrequency - overallDistribution) / 2;
+                        tValue = CalculateTValueCategoric(relativeFrequency, overallDistribution, tValue);
 
                         newTable.Rows.Add(newRow);
                     }
@@ -2300,17 +1930,44 @@ namespace CrypTool.Plugins.Anonymity
                         missingRow["Overall Distribution"] = overallCount == 0 ? "0" : overallCount + "/" + dt.Rows.Count;
 
                         double overallDistribution = overallCount / (double)dt.Rows.Count;
-                        tValue += Math.Abs(0 - overallDistribution) / 2;
+                        tValue = CalculateTValueCategoric(0, overallDistribution, tValue);
 
                         newTable.Rows.Add(missingRow);
                     }
 
-                    if (newTable.Rows.Count > 0)
+                    // Compute the middle row index for the current group
+                    int middleRowIndex = initialRowCount + ((newTable.Rows.Count - initialRowCount) - 1) / 2;
+
+                    // If rows were added for the current group, assign the tValue to the middle row
+                    if (newTable.Rows.Count > initialRowCount)
                     {
-                        newTable.Rows[newTable.Rows.Count - 1]["t-Value"] = tValue;
+                        newTable.Rows[middleRowIndex]["t-Value"] = tValue;
                     }
                 }
-            }else if (minGroupSize > 1 && hiddenComboboxes[sensitiveIndex].SelectedItem.ToString() == "Numeric")
+           
+
+                List<double> tValues = newTable.AsEnumerable()
+                    .Where(row => row["t-Value"] != DBNull.Value)
+                    .Select(row => double.Parse(row["t-Value"].ToString()))
+                    .ToList();
+
+         
+                double maxTValue;
+                if (tValues.Any())
+                {
+                    maxTValue = tValues.Max();
+                }
+                else
+                {
+                    maxTValue = 0;
+                }
+
+
+                tableMessage.Text = "The table meets t-Closeness with a t-value of " + maxTValue + ". The highest t-value found in any equivalence class determines the overall t-value for the datatable.";
+
+
+            }
+            else if (minGroupSize > 1 && hiddenComboboxes[sensitiveIndex].SelectedItem.ToString() == "Numeric")
             {
                 foreach (var group in equivalenceClass)
                 {
@@ -2324,39 +1981,12 @@ namespace CrypTool.Plugins.Anonymity
                     var missingSensitiveValues = orderedSensitiveValues.Except(sensitiveValuesInGroup);
 
                     // Calculate t-Value
-                    double tValue = 0;
-                    double r = 0;
-                    for (int i = 0; i < orderedSensitiveValues.Count - 1; i++)
-                    {
-                        double currentValue = orderedSensitiveValues[i];
-                        double groupCount = group.Count(row => double.Parse(row[sensitiveIndex].ToString()) == currentValue);
-                        double overallCount = dt.AsEnumerable().Count(row => double.Parse(row[sensitiveIndex].ToString()) == currentValue);
+                    double tValue = CalculateTValueNumeric(orderedSensitiveValues, group, dt, sensitiveIndex);
 
-                        double groupDist = groupCount / (double)group.Count();
-                        double overallDist = overallCount / (double)dt.Rows.Count;
+                    int initialRowCount = newTable.Rows.Count; // Count the rows before adding new ones
 
-                        r += groupDist - overallDist;
-                        tValue += Math.Abs(r);
-                    }
-                    tValue /= (orderedSensitiveValues.Count - 1);
-
-                    var firstValue = sensitiveValuesInGroup.First();
-
-                    // Calculate Frequency and Overall Distribution for the first value
-                    int firstValueGroupCount = group.Count(row => double.Parse(row[sensitiveIndex].ToString()) == firstValue);
-                    int firstValueOverallCount = dt.AsEnumerable().Count(row => double.Parse(row[sensitiveIndex].ToString()) == firstValue);
-
-                    DataRow tValueRow = newTable.NewRow();
-                    tValueRow.ItemArray = group.First().ItemArray;
-                    tValueRow[sensitiveIndex] = firstValue;
-                    tValueRow["Frequency"] = $"{firstValueGroupCount}/{group.Count()}";
-                    tValueRow["Overall Distribution"] = firstValueOverallCount == 0 ? "0" : firstValueOverallCount + "/" + dt.Rows.Count;
-                    tValueRow["t-Value"] = tValue;
-
-                    newTable.Rows.Add(tValueRow);
-
-                    // Add remaining sensitive values
-                    foreach (var value in sensitiveValuesInGroup.Skip(1))  // skip the first sensitive value because it's already added
+                    // Add all sensitive values, including the first one
+                    foreach (var value in sensitiveValuesInGroup)
                     {
                         DataRow existingRow = newTable.NewRow();
                         existingRow.ItemArray = group.First(row => double.Parse(row[sensitiveIndex].ToString()) == value).ItemArray;
@@ -2384,44 +2014,75 @@ namespace CrypTool.Plugins.Anonymity
 
                         newTable.Rows.Add(missingRow);
                     }
+
+                    // Compute the middle row index for the current group
+                    int middleRowIndex = initialRowCount + ((newTable.Rows.Count - initialRowCount) - 1) / 2;
+
+                    // If rows were added for the current group, assign the tValue to the middle row
+                    if (newTable.Rows.Count > initialRowCount)
+                    {
+                        newTable.Rows[middleRowIndex]["t-Value"] = tValue;
+                    }
                 }
+                List<double> tValues = newTable.AsEnumerable()
+                   .Where(row => row["t-Value"] != DBNull.Value)
+                   .Select(row => double.Parse(row["t-Value"].ToString()))
+                   .ToList();
+
+
+                double maxTValue;
+                if (tValues.Any())
+                {
+                    maxTValue = tValues.Max();
+                }
+                else
+                {
+                    maxTValue = 0;
+                }
+
+
+                tableMessage.Text = "The table meets t-Closeness with a t-value of " + maxTValue + ". The highest t-value found in any equivalence class determines the overall t-value for the datatable.";
 
 
             }
 
-
-
             else
             {
-                foreach (DataRow row in dt.Rows)
+                foreach (DataRow dtRow in dt.Rows)
                 {
                     DataRow newRow = newTable.NewRow();
-                    newRow.ItemArray = row.ItemArray;
+                    newRow.ItemArray = dtRow.ItemArray;
 
                     newRow["Frequency"] = "1/1";
 
-                    int overallCount = dt.AsEnumerable().Count(rowData => rowData[sensitiveIndex].Equals(row[sensitiveIndex]));
+                    int overallCount = dt.AsEnumerable().Count(rowData => rowData[sensitiveIndex].Equals(dtRow[sensitiveIndex]));
                     newRow["Overall Distribution"] = overallCount == 0 ? "0" : overallCount + "/" + dt.Rows.Count;
+                    if (hiddenComboboxes[sensitiveIndex].SelectedItem.ToString() == "Categoric")
+                    {
+                        double tValue = CalculateTValueCategoricSingleRowGroup(dt, sensitiveIndex, distinctSensitiveValues, dtRow);
+                        newRow["t-Value"] = tValue;
+                    }
+                    // wenn das Attribut numerisch ist
+                    else if (hiddenComboboxes[sensitiveIndex].SelectedItem.ToString() == "Numeric")
+                    {
+
+                        var orderedSensitiveValues = dt.AsEnumerable()
+                            .Select(rowData => double.Parse(rowData[sensitiveIndex].ToString()))
+                            .Distinct()
+                            .OrderBy(val => val)
+                            .ToList();
+
+                        int overallSum = dt.AsEnumerable().Count(rowData => double.Parse(rowData[sensitiveIndex].ToString()) == double.Parse(dtRow[sensitiveIndex].ToString()));
+                        newRow["Overall Distribution"] = overallSum == 0 ? "0" : overallSum + "/" + dt.Rows.Count;
+
+                        double tValue = CalculateTValueNumericSingleRowGroup(dtRow, dt, sensitiveIndex, orderedSensitiveValues);
+                        newRow["t-Value"] = tValue;
+                    }
 
                     newTable.Rows.Add(newRow);
                 }
+                tableMessage.Text = "Every row represents a single equivalence class right now. Please modify the data to ensure that multiple rows are identical with respect to the Quasi-Identifiers";
 
-                var sensitiveValueInGroup = dt.AsEnumerable().Select(row => row[sensitiveIndex]).Distinct().ToList();
-                var missingSensitiveValues = distinctSensitiveValues.Except(sensitiveValueInGroup);
-
-                foreach (var missingSensitiveValue in missingSensitiveValues)
-                {
-                    DataRow missingRow = newTable.NewRow();
-                    missingRow.ItemArray = dt.Rows[0].ItemArray;
-
-                    missingRow[sensitiveIndex] = missingSensitiveValue;
-                    missingRow["Frequency"] = "0/1";
-
-                    int overallCount = dt.AsEnumerable().Count(row => row[sensitiveIndex].Equals(missingSensitiveValue));
-                    missingRow["Overall Distribution"] = overallCount == 0 ? "0" : overallCount + "/" + dt.Rows.Count;
-
-                    newTable.Rows.Add(missingRow);
-                }
             }
 
             // Implement the "IsGroupStart" and "IsGroupEnd" logic
@@ -2456,7 +2117,122 @@ namespace CrypTool.Plugins.Anonymity
                     CenterColumnData(a);
                 }
             }
+
+
+            CenterColumnDataByName("t-Value");
         }
+
+
+
+
+
+
+        private double CalculateTValueCategoric(double relativeFrequency, double overallDistribution, double tValue)
+        {
+            tValue += Math.Abs(relativeFrequency - overallDistribution) / 2;
+
+            if (tValue * 1000 != Math.Floor(tValue * 1000))
+            {
+                tValue = Math.Round(tValue, 3, MidpointRounding.AwayFromZero);
+            }
+
+            return tValue;
+        }
+
+
+        private double CalculateTValueNumeric(List<double> orderedSensitiveValues, IEnumerable<DataRow> group, DataTable dt, int sensitiveIndex)
+        {
+            double tValue = 0;
+            double r = 0;
+            for (int i = 0; i < orderedSensitiveValues.Count - 1; i++)
+            {
+                double currentValue = orderedSensitiveValues[i];
+                double groupCount = group.Count(row => double.Parse(row[sensitiveIndex].ToString()) == currentValue);
+                double overallCount = dt.AsEnumerable().Count(row => double.Parse(row[sensitiveIndex].ToString()) == currentValue);
+
+                double groupDist = groupCount / (double)group.Count();
+                double overallDist = overallCount / (double)dt.Rows.Count;
+
+                r += groupDist - overallDist;
+                tValue += Math.Abs(r);
+            }
+            tValue /= (orderedSensitiveValues.Count - 1);
+
+            if (tValue * 1000 != Math.Floor(tValue * 1000))
+            {
+                tValue = Math.Round(tValue, 3, MidpointRounding.AwayFromZero);
+            }
+
+
+            return tValue;
+        }
+
+
+
+
+
+        public double CalculateTValueNumericSingleRowGroup(DataRow currentRow, DataTable dt, int sensitiveIndex, List<double> orderedSensitiveValues)
+        {
+            double tValue = 0;
+            double r = 0;
+            double currentValue = double.Parse(currentRow[sensitiveIndex].ToString());
+
+            for (int i = 0; i < orderedSensitiveValues.Count - 1; i++)
+            {
+                double orderedValue = orderedSensitiveValues[i];
+                double groupDist = orderedValue == currentValue ? 1 : 0;
+                double overallDist = dt.AsEnumerable().Count(rowData => double.Parse(rowData[sensitiveIndex].ToString()) == orderedValue) / (double)dt.Rows.Count;
+                r += groupDist - overallDist;
+                tValue += Math.Abs(r);
+            }
+            tValue /= (orderedSensitiveValues.Count - 1);
+            if (tValue * 1000 != Math.Floor(tValue * 1000))
+            {
+                // Wenn ja, auf 3 Stellen nach dem Komma aufrunden
+                tValue = Math.Round(tValue, 3, MidpointRounding.AwayFromZero);
+            }
+
+
+
+            return tValue;
+        }
+
+
+
+        private double CalculateTValueCategoricSingleRowGroup(DataTable dt, int sensitiveIndex, List<object> distinctSensitiveValues, DataRow dtRow)
+        {
+            double tValue = 0;
+            foreach (var sensitiveValue in distinctSensitiveValues)
+            {
+                int countForSensitiveValue = dt.AsEnumerable().Count(rowData => rowData[sensitiveIndex].Equals(sensitiveValue));
+                double overallDistribution = countForSensitiveValue / (double)dt.Rows.Count;
+                if (sensitiveValue.Equals(dtRow[sensitiveIndex]))
+                {
+                    tValue += 1 - overallDistribution;
+                }
+                else
+                {
+                    tValue += overallDistribution;
+                }
+            }
+            tValue = tValue / 2;
+
+            // Prüfen, ob mehr als 3 Stellen nach dem Komma vorhanden sind
+            if (tValue * 1000 != Math.Floor(tValue * 1000))
+            {
+                // Wenn ja, auf 3 Stellen nach dem Komma aufrunden
+                tValue = Math.Round(tValue, 3, MidpointRounding.AwayFromZero);
+            }
+
+            return tValue;
+        }
+
+
+
+
+
+
+
 
 
 
@@ -2476,8 +2252,7 @@ namespace CrypTool.Plugins.Anonymity
 
             if (sensitiveIndex == -1)
             {
-                Console.WriteLine("No sensitive value");
-                tableMessage.Text = "No sensitive value is selected, therefore l-Diversity cannot be calculated";
+                tableMessage.Text = "No sensitive value is selected, therefore Recursive (c,l)-Diversity cannot be calculated";
                 return;
             }
 
@@ -2534,14 +2309,11 @@ namespace CrypTool.Plugins.Anonymity
 
                 var l = equiClass.OrderBy(group => group.DistinctValuesCount).FirstOrDefault();
 
-                if (l.DistinctValuesCount == 1)
-                {
-                    tableMessage.Text = "The table only fulfills 1-Diversity as there exist equivalence classes in which the rows have the same sensitive value.";
-                }
-                else
-                {
-                    tableMessage.Text = "The table fulfills " + l.DistinctValuesCount + "- Diversity. In every equivalence class there are at least " + l.DistinctValuesCount + " different sensitive values";
-                }
+              
+              
+                
+               tableMessage.Text = "Recursive (c,l)-Diversity is fulfilled for any c with n1 < c * (nl + ... nm)";
+                
 
                 foreach (var group in groupedRows)
                 {
@@ -2584,9 +2356,15 @@ namespace CrypTool.Plugins.Anonymity
                             lastRow["IsGroupEnd"] = false;
                         }
 
-                        // Die angepasste Logik für die Berechnung der "c-value" Werte
                         int remainingTotalFrequency = orderedGroupRows.Skip(i).Sum(r => r.Field<int>("Frequency"));
-                        row["c-value"] = (double)maxFrequency / remainingTotalFrequency;
+                       
+                        var cvalue = (double)maxFrequency / remainingTotalFrequency;
+                        if (cvalue * 1000 != Math.Floor(cvalue * 1000))
+                        {
+                            cvalue = Math.Round(cvalue, 3, MidpointRounding.AwayFromZero);
+                        }
+
+                        row["c-value"] = cvalue;
 
                         lastRow = row;
                         sortedNewTable.ImportRow(row);
@@ -2609,7 +2387,7 @@ namespace CrypTool.Plugins.Anonymity
                     newTable.Rows.Add(newRow);
                 }
 
-                tableMessage.Text = "The table only fulfills 1-Diversity as every row represents a distinct equivalence class. Try to modify the data to make multiple rows identical with regards to the Quasi-Identifiers";
+                tableMessage.Text = "Every row represents a single equivalence class right now. Please modify the data to ensure that multiple rows are identical with respect to the Quasi-Identifiers";
 
                 table.ItemsSource = newTable.DefaultView;
             }
@@ -2621,6 +2399,9 @@ namespace CrypTool.Plugins.Anonymity
                     CenterColumnData(a);
                 }
             }
+
+
+            CenterColumnDataByName("c-value");
         }
 
 
@@ -2637,6 +2418,7 @@ namespace CrypTool.Plugins.Anonymity
                 {
                     DistinctLDiversityTable();
                     ColumnKValueCollapsed();
+                    OnDataTableChanged();
                 }
                 else if (selectedTab.Header.ToString() == "k-Anonymity")
                 {
@@ -2644,23 +2426,28 @@ namespace CrypTool.Plugins.Anonymity
 
                     KAnonymityTable();
                     ColumnKValueVisible();
+                    OnDataTableChanged();
 
                 }
                 else if (selectedTab.Header.ToString() == "t-Closeness")
                 {
                     TClosenessTable();
                     ColumnKValueCollapsed();
+                    OnDataTableChanged();
 
                 }
-                else if(selectedTab.Header.ToString() == "Entropy l-Diversity")
+                else if (selectedTab.Header.ToString() == "Entropy l-Diversity")
                 {
                     EntropyLDiversityTable();
                     ColumnKValueCollapsed();
-                }else if (selectedTab.Header.ToString() == "Recursive (c,l)-Diversity")
+                    OnDataTableChanged();
+                }
+                else if (selectedTab.Header.ToString() == "Recursive (c,l)-Diversity")
                 {
 
                     RecursiveLDiversityTable();
                     ColumnKValueCollapsed();
+                    OnDataTableChanged();
                 }
             }
 

@@ -185,13 +185,10 @@ namespace CrypTool.Plugins.Anonymity
         private void Presentation_DataTableChanged(object sender, EventArgs e)
         {
             var dataGrid = _presentation.table;
-
             StringBuilder csv = new StringBuilder();
 
-  
             foreach (DataGridColumn column in dataGrid.Columns)
             {
-     
                 if (column.Visibility == Visibility.Visible)
                 {
                     csv.Append(column.Header);
@@ -206,8 +203,7 @@ namespace CrypTool.Plugins.Anonymity
                 DataRow row = rowView.Row;
                 foreach (DataColumn column in row.Table.Columns)
                 {
-          
-                    if (dataGrid.Columns[column.Ordinal].Visibility == Visibility.Visible)
+                    if (column.Ordinal < dataGrid.Columns.Count && dataGrid.Columns[column.Ordinal].Visibility == Visibility.Visible)
                     {
                         csv.Append(row[column.ColumnName]);
                         csv.Append(",");
@@ -225,7 +221,7 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-        
+
 
 
 
