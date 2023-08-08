@@ -190,7 +190,7 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-
+        // the selection of only one sensitive column is enforced
         private void EnforceSingleSensitive(object sender, SelectionChangedEventArgs e)
         {
             ComboBox currentBox = sender as ComboBox;
@@ -491,9 +491,7 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
-        /* handle rectangle coloring
-         * 
-         */
+        // handle rectangle coloring
 
         private void RectangleColoring(Rectangle rect)
         {
@@ -509,14 +507,8 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-        /* grouping for numeric items
-         *
-         * 
-         * 
-         * 
-         */
-
-
+        // grouping for numeric items
+  
         private void HandleGrouping(Rectangle clickedRect, Canvas canvas, int columnIndex)
         {
             DataTable init = initialTable.Copy();
@@ -1110,6 +1102,8 @@ namespace CrypTool.Plugins.Anonymity
 
         }
 
+
+        // method for centering the values in a column
         private void CenterColumnData(int columnIndex)
         {
             if (table.Columns.Count > columnIndex)
@@ -1120,6 +1114,8 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
+
+        // method for centering the values in a column centrally by columname
         private void CenterColumnDataByName(string columnName)
         {
             var column = table.Columns.FirstOrDefault(c => c.Header != null && c.Header.ToString() == columnName);
@@ -1246,6 +1242,11 @@ namespace CrypTool.Plugins.Anonymity
             
 
         }
+
+
+
+
+        // event handling if a tab is selected
         private void OnTabSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var tabControl = sender as TabControl;
@@ -1283,6 +1284,9 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
+
+
+        // method for generating the k-Anonymity table
         private void KAnonymityTable()
         {
 
@@ -1335,6 +1339,11 @@ namespace CrypTool.Plugins.Anonymity
 
             }
         }
+
+
+
+
+        // method for generating the distinct l diversity label
         private void DistinctLDiversityTable()
         {
             int sensitiveIndex = -1;
@@ -1484,6 +1493,8 @@ namespace CrypTool.Plugins.Anonymity
             CenterColumnDataByName("l-value");
             OnDataTableChanged();
         }
+
+        // method for making the column k-Value collapsed
         private void ColumnKValueCollapsed()
         {
 
@@ -1495,6 +1506,8 @@ namespace CrypTool.Plugins.Anonymity
 
 
         }
+
+        // method for making the column k-Value visible
         private void ColumnKValueVisible()
         {
 
@@ -1508,6 +1521,10 @@ namespace CrypTool.Plugins.Anonymity
             CenterColumnDataByName("k-Value");
 
         }
+
+
+
+        // method for generating the entropy l diversity label
         private void EntropyLDiversityTable()
         {
             int sensitiveIndex = -1;
@@ -1697,6 +1714,15 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
+
+
+
+        // method for generating the tcloseness table
+        /*
+         * t-value is calculated differently if the sensitive attribute is numeric or categoric 
+         * t-value calculation logic is in other methods
+         * 
+         */
         private void TClosenessTable()
         {
             int sensitiveIndex = -1;
@@ -1975,7 +2001,7 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-
+        // method for calculating the t value if the sensitive value is categoric
 
         private double CalculateTValueCategoric(double relativeFrequency, double overallDistribution, double tValue)
         {
@@ -1990,6 +2016,8 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
+
+        // method for calculating the t value if the sensitive value is numeric
         private double CalculateTValueNumeric(List<double> orderedSensitiveValues, IEnumerable<DataRow> group, DataTable dt, int sensitiveIndex)
         {
             double tValue = 0;
@@ -2017,6 +2045,10 @@ namespace CrypTool.Plugins.Anonymity
             return tValue;
         }
 
+
+
+        // method for calculating the t value if the sensitive attribute is numeric. Is called when there are no equivalence classes in the table and every row represents a single group
+
         public double CalculateTValueNumericSingleRowGroup(DataRow currentRow, DataTable dt, int sensitiveIndex, List<double> orderedSensitiveValues)
         {
             double tValue = 0;
@@ -2041,6 +2073,9 @@ namespace CrypTool.Plugins.Anonymity
 
             return tValue;
         }
+
+
+        // method for calculating the t value if the sensitive attribute is categoric. Is called when there are no equivalence classes in the table and every row represents a single group
         private double CalculateTValueCategoricSingleRowGroup(DataTable dt, int sensitiveIndex, List<object> distinctSensitiveValues, DataRow dtRow)
         {
             double tValue = 0;
@@ -2067,6 +2102,10 @@ namespace CrypTool.Plugins.Anonymity
             return tValue;
         }
 
+
+
+
+        // method for generating the Recursive (c,l)-Diversity table
         private void RecursiveLDiversityTable()
         {
             int sensitiveIndex = -1;
@@ -2231,6 +2270,8 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
+
+        // checks which tab is currently selected and calles the corresponding table method
         private void CheckSelectedTab(TabControl tabControl)
         {
             var selectedTab = tabControl.SelectedItem as TabItem;
