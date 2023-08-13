@@ -1160,7 +1160,7 @@ namespace CrypTool.Plugins.Anonymity
 
             int minGroupSize = groupedRows.Min(group => group.Count());
 
-            int maxGroupSize = groupedRows.Max(group => group.Count());
+       
 
             if (!quasiIdentifierIndexes.Any())
             {
