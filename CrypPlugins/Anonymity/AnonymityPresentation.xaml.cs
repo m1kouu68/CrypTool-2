@@ -78,7 +78,7 @@ namespace CrypTool.Plugins.Anonymity
         }
 
         // create the datatable in the presentation
-        public void CreateDataTable(string InputCsv, string RowSeperator, string ColumnSeperator)
+        public void CreateDataTableAndComboboxes(string InputCsv, string RowSeperator, string ColumnSeperator)
         {
 
             dt = new DataTable();
@@ -1318,7 +1318,7 @@ namespace CrypTool.Plugins.Anonymity
                 minGroupSize = 1;
             }
 
-            int maxGroupSize = groupedRows.Max(group => group.Count());
+         
 
             int amountEquiClass = groupedRows.Count;
             if (minGroupSize == 1)
@@ -1326,7 +1326,7 @@ namespace CrypTool.Plugins.Anonymity
                 tableMessage.Text = "The table only meets the criteria of 1-Anonymity, where each row represents a distinct equivalence class. Please modify the data to make multiple rows identical with respect to the columns designated as Quasi-Identifiers.";
 
             }
-            else if (minGroupSize == maxGroupSize)
+            else if (groupedRows.Count == 1)
             {
                 tableMessage.Text = "The table complies with k=" + minGroupSize + "-anonymity, as there is one equivalence class with a k-value of " + minGroupSize + ", meaning that there are " + minGroupSize + " rows that are identical with respect to the Quasi-Identifier columns.";
 

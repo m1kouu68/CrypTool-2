@@ -149,7 +149,7 @@ namespace CrypTool.Plugins.Anonymity
                 {
 
                     _presentation.ClearPresentation();
-                    _presentation.CreateDataTable(_csv, rowSeperator, columnSeperator);    
+                    _presentation.CreateDataTableAndComboboxes(_csv, rowSeperator, columnSeperator);    
                     _presentation.DataTableChanged += Presentation_DataTableChanged;
                 
 
