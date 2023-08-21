@@ -145,6 +145,13 @@ namespace CrypTool.Plugins.Anonymity
                 string columnSeperator = ProcessEscapeSymbols(_settings.ColumnSeparator);
                 OutputData = _csv;
 
+
+                if (!_csv.Contains(rowSeperator) || !_csv.Contains(columnSeperator))
+                {
+                    GuiLogMessage("CSV does not contain the specified row or column separator. Cannot process.", NotificationLevel.Warning);
+                    return;
+                }
+
                 Presentation.Dispatcher.Invoke(DispatcherPriority.Normal, (SendOrPostCallback)delegate
                 {
 
