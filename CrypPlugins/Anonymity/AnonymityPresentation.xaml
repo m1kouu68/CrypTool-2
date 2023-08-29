@@ -166,7 +166,7 @@
                                    FontSize= "18"
                                     HorizontalAlignment="Center"
                                    FontWeight="DemiBold"
-                                   Foreground="Black" >Categoric Columns</TextBlock>
+                                   Foreground="Black" >Categoric columns</TextBlock>
 
 
                         <StackPanel
@@ -188,7 +188,7 @@
                                    FontSize= "18"  
                                    FontWeight="DemiBold"
                                HorizontalAlignment="Center"
-                                   Foreground="Black" >Numeric Columns</TextBlock>
+                                   Foreground="Black" >Numeric columns</TextBlock>
                     <StackPanel
                 x:Name="numericContainer"
 

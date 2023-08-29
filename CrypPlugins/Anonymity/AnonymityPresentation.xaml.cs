@@ -115,7 +115,7 @@ namespace CrypTool.Plugins.Anonymity
                 }
 
 
-                /* create comboboxes containing Identifier, Quasi-Identifier and Sensitive Attribute values
+                /* create comboboxes containing Identifier, Quasi-Identifier and Sensitive attribute values
                  * create comboboxes containing Numeric and Categoric values
                  * create message that identifiers are removed from the table
                  */
@@ -135,9 +135,9 @@ namespace CrypTool.Plugins.Anonymity
 
                     ComboBox box1 = new ComboBox();
                     box1.Items.Add("Identifier");
-                    box1.Items.Add("Quasi-Identifier");
-                    box1.Items.Add("Sensitive Attribute");
-                    box1.SelectedValue = "Quasi-Identifier";
+                    box1.Items.Add("Quasi-identifier");
+                    box1.Items.Add("Sensitive attribute");
+                    box1.SelectedValue = "Quasi-identifier";
                     box1.Margin = new Thickness(5);
                     box1.SelectionChanged += ComboBoxSelectionQuasiIdentifier;
                     box1.SelectionChanged += EnforceSingleSensitive;
@@ -222,20 +222,17 @@ namespace CrypTool.Plugins.Anonymity
                 return; 
             }
 
-            if (currentBox.SelectedItem.ToString() == "Sensitive Attribute")
+            if (currentBox.SelectedItem.ToString() == "Sensitive attribute")
             {
                 foreach (ComboBox box in labelComboboxes)
                 {
-                    if (box != null && box != currentBox && box.SelectedItem != null && box.SelectedItem.ToString() == "Sensitive Attribute")
+                    if (box != null && box != currentBox && box.SelectedItem != null && box.SelectedItem.ToString() == "Sensitive attribute")
                     {
-                        box.SelectedItem = "Quasi-Identifier";
+                        box.SelectedItem = "Quasi-identifier";
                     }
                 }
             }
         }
-
-
-
 
 
 
@@ -286,7 +283,7 @@ namespace CrypTool.Plugins.Anonymity
                 {
                     continue;
                 }
-                else if (labelComboboxes[i] == combo && combo.SelectedItem.ToString() != "Quasi-Identifier" && hiddenComboboxes[i].SelectedItem.ToString() == "Categoric")
+                else if (labelComboboxes[i] == combo && combo.SelectedItem.ToString() != "Quasi-identifier" && hiddenComboboxes[i].SelectedItem.ToString() == "Categoric")
                 {
 
 
@@ -312,7 +309,7 @@ namespace CrypTool.Plugins.Anonymity
                     CheckSelectedTab(tabSelec);
 
                 }
-                else if (labelComboboxes[i] == combo && combo.SelectedItem.ToString() != "Quasi-Identifier" && hiddenComboboxes[i].SelectedItem.ToString() == "Numeric")
+                else if (labelComboboxes[i] == combo && combo.SelectedItem.ToString() != "Quasi-identifier" && hiddenComboboxes[i].SelectedItem.ToString() == "Numeric")
                 {
                     // check if index is within column indices
                     if (i < 0 || i >= dt.Columns.Count)
@@ -337,13 +334,13 @@ namespace CrypTool.Plugins.Anonymity
                     RemoveSpecificNumericItem(headers[i]);
                     CheckSelectedTab(tabSelec);
                 }
-                else if (labelComboboxes[i] == combo && combo.SelectedItem.ToString() == "Quasi-Identifier" && hiddenComboboxes[i].SelectedItem.ToString() == "Categoric")
+                else if (labelComboboxes[i] == combo && combo.SelectedItem.ToString() == "Quasi-identifier" && hiddenComboboxes[i].SelectedItem.ToString() == "Categoric")
                 {
                     SpecificColumnVisibility(i);
                     GenerateSpecificCategoricItem(i);
                     CheckSelectedTab(tabSelec);
                 }
-                else if (labelComboboxes[i] == combo && combo.SelectedItem.ToString() == "Quasi-Identifier" && hiddenComboboxes[i].SelectedItem.ToString() == "Numeric")
+                else if (labelComboboxes[i] == combo && combo.SelectedItem.ToString() == "Quasi-identifier" && hiddenComboboxes[i].SelectedItem.ToString() == "Numeric")
                 {
                     SpecificColumnVisibility(i);
                     GenerateSpecificNumericItem(i);
@@ -421,7 +418,7 @@ namespace CrypTool.Plugins.Anonymity
                 return;
             }
 
-            if (combobox.SelectedItem != null && combobox.SelectedItem.ToString() == "Quasi-Identifier")
+            if (combobox.SelectedItem != null && combobox.SelectedItem.ToString() == "Quasi-identifier")
             {
                 identMessageLabels[selectedIndex].Visibility = Visibility.Hidden;
                 hiddenComboboxes[selectedIndex].Visibility = Visibility.Visible;
@@ -429,9 +426,16 @@ namespace CrypTool.Plugins.Anonymity
             }
             else if (combobox.SelectedItem != null && combobox.SelectedItem.ToString() == "Identifier")
             {
-
+                identMessageLabels[selectedIndex].Content = "Identifier is removed from table";
                 identMessageLabels[selectedIndex].Visibility = Visibility.Visible;
                 hiddenComboboxes[selectedIndex].Visibility = Visibility.Hidden;
+
+            }else if (combobox.SelectedItem != null && combobox.SelectedItem.ToString() == "Sensitive attribute")
+            {
+                identMessageLabels[selectedIndex].Content = "Only one sensitive column allowed";
+                identMessageLabels[selectedIndex].Visibility = Visibility.Visible;
+                hiddenComboboxes[selectedIndex].Visibility = Visibility.Hidden;
+
 
             }
 
@@ -1426,7 +1430,7 @@ namespace CrypTool.Plugins.Anonymity
             List<int> quasiIdentifierIndexes = new List<int>();
             for (int i = 0; i < labelComboboxes.Count; i++)
             {
-                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Quasi-Identifier")
+                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Quasi-identifier")
                 {
                     quasiIdentifierIndexes.Add(i);
 
@@ -1464,9 +1468,9 @@ namespace CrypTool.Plugins.Anonymity
                 newTable.Columns.Add("IsGroupEnd", typeof(bool));
             }
 
-            if (!newTable.Columns.Contains("k-Value"))
+            if (!newTable.Columns.Contains("k-value"))
             {
-                newTable.Columns.Add("k-Value", typeof(int));
+                newTable.Columns.Add("k-value", typeof(int));
             }
 
             if (minGroupSize == 1)
@@ -1478,7 +1482,7 @@ namespace CrypTool.Plugins.Anonymity
                     newRow["GroupID"] = -1;
                     newRow["IsGroupStart"] = false;
                     newRow["IsGroupEnd"] = false;
-                    newRow["k-Value"] = 1;
+                    newRow["k-value"] = 1;
                     newTable.Rows.Add(newRow);
                 }
             }
@@ -1503,11 +1507,11 @@ namespace CrypTool.Plugins.Anonymity
                         newRow["IsGroupEnd"] = i == groupRows.Count - 1;
                         if (i == middleIndex) 
                         {
-                            newRow["k-Value"] = groupRows.Count;
+                            newRow["k-value"] = groupRows.Count;
                         }
                         else
                         {
-                            newRow["k-Value"] = (object)DBNull.Value;
+                            newRow["k-value"] = (object)DBNull.Value;
                         }
                         newTable.Rows.Add(newRow);
                     }
@@ -1600,7 +1604,7 @@ namespace CrypTool.Plugins.Anonymity
                 List<int> quasiIdentifierIndexes = new List<int>();
                 for (int i = 0; i < labelComboboxes.Count; i++)
                 {
-                    if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Quasi-Identifier")
+                    if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Quasi-identifier")
                     {
                         quasiIdentifierIndexes.Add(i);
 
@@ -1641,19 +1645,19 @@ namespace CrypTool.Plugins.Anonymity
                 int amountEquiClass = groupedRows.Count;
                 if (minGroupSize == 1)
                 {
-                    tableMessage.Text = "The table only meets the criteria of 1-Anonymity, where each row represents a distinct equivalence class. Please modify the data to make multiple rows identical with respect to the columns designated as Quasi-Identifiers.";
+                    tableMessage.Text = "The table only meets the criteria of 1-Anonymity, where each row represents a distinct equivalence class. Please modify the data to make multiple rows identical with respect to the columns designated as Quasi-identifiers.";
 
                 }
                 else if (groupedRows.Count == 1)
                 {
-                    tableMessage.Text = "The table complies with k=" + minGroupSize + "-anonymity, as there is one equivalence class with a k-value of " + minGroupSize + ", meaning that there are " + minGroupSize + " rows that are identical with respect to the Quasi-Identifier columns.";
+                    tableMessage.Text = "The table complies with k=" + minGroupSize + "-anonymity, as there is one equivalence class with a k-value of " + minGroupSize + ", meaning that there are " + minGroupSize + " rows that are identical with respect to the Quasi-identifier columns.";
 
                 }
 
 
                 else
                 {
-                    tableMessage.Text = "The table meets the criteria of k=" + minGroupSize + "-anonymity, as the smallest k-value for any equivalence class is " + minGroupSize + ". In total, there are " + amountEquiClass + " equivalence classes that are identical with respect to the Quasi-Identifier columns.";
+                    tableMessage.Text = "The table meets the criteria of k=" + minGroupSize + "-anonymity, as the smallest k-value for any equivalence class is " + minGroupSize + ". In total, there are " + amountEquiClass + " equivalence classes that are identical with respect to the Quasi-identifier columns.";
 
                 }
 
@@ -1683,7 +1687,7 @@ namespace CrypTool.Plugins.Anonymity
             int sensitiveIndex = -1;
             for (int i = 0; i < labelComboboxes.Count; i++)
             {
-                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Sensitive Attribute")
+                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Sensitive attribute")
                 {
                     sensitiveIndex = i;
                     break;
@@ -1693,7 +1697,7 @@ namespace CrypTool.Plugins.Anonymity
             if (sensitiveIndex == -1)
             {
 
-                tableMessage.Text = "No sensitive column has been assigned, so l-Diversity cannot be calculated. Please mark a column as sensitive so that l-Diversity can be determined";
+                tableMessage.Text = "No sensitive column has been assigned, so l-Diversity cannot be calculated. Please mark a column as sensitive so that l-Diversity can be determined.";
                 return;
             }
 
@@ -1706,7 +1710,7 @@ namespace CrypTool.Plugins.Anonymity
                 List<int> quasiIdentifierIndexes = new List<int>();
                 for (int i = 0; i < labelComboboxes.Count; i++)
                 {
-                    if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Quasi-Identifier")
+                    if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Quasi-identifier")
                     {
                         quasiIdentifierIndexes.Add(i);
 
@@ -1764,16 +1768,16 @@ namespace CrypTool.Plugins.Anonymity
 
                     if (l.DistinctValuesCount == 1)
                     {
-                        tableMessage.Text = "The table only meets the criteria for 1-Diversity, as there is an equivalence class where every row has the same sensitive value. Please modify the data to ensure that different sensitive values are present within each equivalence class";
+                        tableMessage.Text = "The table only meets the criteria for 1-Diversity, as there is an equivalence class where every row has the same sensitive value. Please modify the data to ensure that different sensitive values are present within each equivalence class.";
                     }
                     else if (equiClass.Count == 1)
                     {
-                        tableMessage.Text = "The table meets " + l.DistinctValuesCount + "-Diversity, as there are at least " + l.DistinctValuesCount + " different sensitive values in the equivalence class";
+                        tableMessage.Text = "The table meets " + l.DistinctValuesCount + "-Diversity, as there are at least " + l.DistinctValuesCount + " different sensitive values in the equivalence class.";
 
                     }
                     else
                     {
-                        tableMessage.Text = "The table meets " + l.DistinctValuesCount + "-Diversity, as there are at least " + l.DistinctValuesCount + " different sensitive values in every equivalence class";
+                        tableMessage.Text = "The table meets " + l.DistinctValuesCount + "-Diversity, as there are at least " + l.DistinctValuesCount + " different sensitive values in every equivalence class.";
                     }
 
                     var groupsWithRows = groupedRows
@@ -1819,7 +1823,7 @@ namespace CrypTool.Plugins.Anonymity
                         newTable.Rows.Add(newRow);
                     }
 
-                    tableMessage.Text = "The table only satisfies 1-Diversity since each row represents a distinct equivalence class. Please modify the data to ensure that multiple rows are identical with respect to the Quasi-Identifier columns";
+                    tableMessage.Text = "The table only satisfies 1-Diversity as each row represents a distinct equivalence class. Please modify the data to ensure that multiple rows are identical with respect to the Quasi-identifier columns.";
 
                 }
                 table.ItemsSource = newTable.DefaultView;
@@ -1849,7 +1853,7 @@ namespace CrypTool.Plugins.Anonymity
         private void ColumnKValueCollapsed()
         {
 
-            DataGridColumn kValue = table.Columns.FirstOrDefault(col => col.Header.ToString() == "k-Value");
+            DataGridColumn kValue = table.Columns.FirstOrDefault(col => col.Header.ToString() == "k-value");
             if (kValue != null)
             {
                 kValue.Visibility = Visibility.Collapsed;
@@ -1862,14 +1866,14 @@ namespace CrypTool.Plugins.Anonymity
         private void ColumnKValueVisible()
         {
 
-            DataGridColumn kValue = table.Columns.FirstOrDefault(col => col.Header.ToString() == "k-Value");
+            DataGridColumn kValue = table.Columns.FirstOrDefault(col => col.Header.ToString() == "k-value");
             if (kValue != null)
             {
                 kValue.Visibility = Visibility.Visible;
             }
 
 
-            CenterColumnDataByName("k-Value");
+            CenterColumnDataByName("k-value");
 
         }
 
@@ -1890,7 +1894,7 @@ namespace CrypTool.Plugins.Anonymity
             int sensitiveIndex = -1;
             for (int i = 0; i < labelComboboxes.Count; i++)
             {
-                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Sensitive Attribute")
+                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Sensitive attribute")
                 {
                     sensitiveIndex = i;
                     break;
@@ -1899,7 +1903,7 @@ namespace CrypTool.Plugins.Anonymity
             if (sensitiveIndex == -1)
             {
                
-                tableMessage.Text = "No sensitive value is selected, therefore l-Diversity cannot be calculated";
+                tableMessage.Text = "No sensitive value is selected, therefore l-Diversity cannot be calculated.";
                 return;
             }
 
@@ -1912,7 +1916,7 @@ namespace CrypTool.Plugins.Anonymity
                 List<int> quasiIdentifierIndexes = new List<int>();
                 for (int i = 0; i < labelComboboxes.Count; i++)
                 {
-                    if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Quasi-Identifier")
+                    if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Quasi-identifier")
                     {
                         quasiIdentifierIndexes.Add(i);
                     }
@@ -2031,12 +2035,12 @@ namespace CrypTool.Plugins.Anonymity
 
                     if (b == true)
                     {
-                        tableMessage.Text = "The table meets Entropy-l-Diversity as the entropy of every equivalence class is greater or equal to log(l) with l=" + lValue;
+                        tableMessage.Text = "The table meets Entropy-l-Diversity as the entropy of every equivalence class is greater or equal to log(l) with l=" + lValue + ". The l-value stands for the smallest number of distinct sensitive values in any equivalence class.";
 
                     }
                     else
                     {
-                        tableMessage.Text = "Entropy-l-Diversity is not given as the condition that the entropy of every equivalence class is greater or equal to log(l) with l=" + lValue + " is not fulfilled";
+                        tableMessage.Text = "Entropy-l-Diversity is not given as the condition that the entropy of every equivalence class is greater or equal to log(l) with l=" + lValue + " is not fulfilled. The l-value stands for the smallest number of distinct sensitive values in any equivalence class.";
 
                     }
 
@@ -2058,7 +2062,7 @@ namespace CrypTool.Plugins.Anonymity
                     }
 
 
-                    tableMessage.Text = "Every row represents a single equivalence class right now. Please modify the data to ensure that multiple rows are identical with respect to the Quasi-Identifiers";
+                    tableMessage.Text = "Every row represents a single equivalence class right now. Please modify the data to ensure that multiple rows are identical with respect to the Quasi-identifiers.";
 
                 }
 
@@ -2088,7 +2092,7 @@ namespace CrypTool.Plugins.Anonymity
 
         // method for generating the tcloseness table
         /*
-         * t-value is calculated differently if the sensitive attribute is numeric or categoric 
+         * t-value is calculated differently if the Sensitive attribute is numeric or categoric 
          * t-value calculation logic is in other methods
          * 
          */
@@ -2105,7 +2109,7 @@ namespace CrypTool.Plugins.Anonymity
             int sensitiveIndex = -1;
             for (int i = 0; i < labelComboboxes.Count; i++)
             {
-                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Sensitive Attribute")
+                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Sensitive attribute")
                 {
                     sensitiveIndex = i;
                     break;
@@ -2115,14 +2119,14 @@ namespace CrypTool.Plugins.Anonymity
             if (sensitiveIndex == -1)
             {
 
-                tableMessage.Text = "No sensitive value is selected, therefore t-Closeness cannot be calculated";
+                tableMessage.Text = "No sensitive value is selected, therefore t-Closeness cannot be calculated.";
                 return;
             }
 
             List<int> quasiIdentifierIndexes = new List<int>();
             for (int i = 0; i < labelComboboxes.Count; i++)
             {
-                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Quasi-Identifier")
+                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Quasi-identifier")
                 {
                     quasiIdentifierIndexes.Add(i);
                 }
@@ -2334,7 +2338,7 @@ namespace CrypTool.Plugins.Anonymity
 
                     newTable.Rows.Add(newRow);
                 }
-                tableMessage.Text = "Every row represents a single equivalence class right now. Please modify the data to ensure that multiple rows are identical with respect to the Quasi-Identifiers";
+                tableMessage.Text = "Every row represents a single equivalence class right now. Please modify the data to ensure that multiple rows are identical with respect to the Quasi-identifiers.";
 
             }
 
@@ -2418,7 +2422,7 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-        // method for calculating the t value if the sensitive attribute is numeric. Is called when there are no equivalence classes in the table and every row represents a single group
+        // method for calculating the t value if the Sensitive attribute is numeric. Is called when there are no equivalence classes in the table and every row represents a single group
 
         public double CalculateEMDNumericSingleRowGroup(DataRow currentRow, DataTable dt, int sensitiveIndex, List<double> orderedSensitiveValues)
         {
@@ -2443,7 +2447,7 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
-        // method for calculating the t value if the sensitive attribute is categoric. Is called when there are no equivalence classes in the table and every row represents a single group
+        // method for calculating the t value if the Sensitive attribute is categoric. Is called when there are no equivalence classes in the table and every row represents a single group
         private double CalculateEMDCategoricSingleRowGroup(DataTable dt, int sensitiveIndex, List<object> distinctSensitiveValues, DataRow dtRow)
         {
             double tValue = 0;
@@ -2478,7 +2482,7 @@ namespace CrypTool.Plugins.Anonymity
             int sensitiveIndex = -1;
             for (int i = 0; i < labelComboboxes.Count; i++)
             {
-                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Sensitive Attribute")
+                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Sensitive attribute")
                 {
                     sensitiveIndex = i;
                     break;
@@ -2487,14 +2491,14 @@ namespace CrypTool.Plugins.Anonymity
 
             if (sensitiveIndex == -1)
             {
-                tableMessage.Text = "No sensitive value is selected, therefore Recursive (c,l)-Diversity cannot be calculated";
+                tableMessage.Text = "No sensitive value is selected, therefore Recursive (c,l)-Diversity cannot be calculated.";
                 return;
             }
 
             List<int> quasiIdentifierIndexes = new List<int>();
             for (int i = 0; i < labelComboboxes.Count; i++)
             {
-                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Quasi-Identifier")
+                if (labelComboboxes[i].SelectedItem != null && labelComboboxes[i].SelectedItem.ToString() == "Quasi-identifier")
                 {
                     quasiIdentifierIndexes.Add(i);
                 }
@@ -2543,7 +2547,7 @@ namespace CrypTool.Plugins.Anonymity
                     .ToList();
 
                 var l = equiClass.OrderBy(group => group.DistinctValuesCount).FirstOrDefault();
-               tableMessage.Text = "Recursive (c,l)-Diversity is fulfilled for any c with n1 < c * (nl + ... nm)";
+               tableMessage.Text = "m: number of sensitive values in an equivalence class" + "\n" +  "n_1: sensitive value with highest frequency" + "\n" + "Recursive (c,l)-Diversity is fulfilled for any c with n_1 < c * (n_l + ... n_m).";
                 
                 foreach (var group in groupedRows)
                 {
@@ -2616,7 +2620,7 @@ namespace CrypTool.Plugins.Anonymity
                     newTable.Rows.Add(newRow);
                 }
 
-                tableMessage.Text = "Every row represents a single equivalence class right now. Please modify the data to ensure that multiple rows are identical with respect to the Quasi-Identifiers";
+                tableMessage.Text = "Every row represents a single equivalence class right now. Please modify the data to ensure that multiple rows are identical with respect to the Quasi-identifiers.";
 
                 table.ItemsSource = newTable.DefaultView;
             }

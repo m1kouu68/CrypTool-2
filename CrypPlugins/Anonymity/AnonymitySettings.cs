@@ -36,7 +36,7 @@ namespace CrypTool.Plugins.Anonymity
         /// HOWTO: This is an example for a setting entity shown in the settings pane on the right of the CT2 main window.
         /// This example setting uses a number field input, but there are many more input types available, see ControlType enumeration.
         /// </summary>
-        [TaskPane("Row Seperator", "This is the Row Seperator", null, 0, false, ControlType.TextBox)]
+        [TaskPane("Row separator", "This is the Row separator", null, 0, false, ControlType.TextBox)]
         public string RowSeparator
         {
             get
@@ -54,7 +54,7 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
-        [TaskPane("Column Seperator", "This is the Column Seperator", null, 1, false, ControlType.TextBox)]
+        [TaskPane("Column separator", "This is the Column separator", null, 1, false, ControlType.TextBox)]
         public string ColumnSeparator
         {
 
