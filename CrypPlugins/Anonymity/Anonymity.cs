@@ -22,7 +22,9 @@ using System.Text;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Threading;
+using System.Xml.Serialization;
 
 namespace CrypTool.Plugins.Anonymity
 {
@@ -32,7 +34,7 @@ namespace CrypTool.Plugins.Anonymity
     [Author("Mikail Sarier", "mikail.sarier@students.uni-mannheim.de", "Universität Mannheim", "")]
     // HOWTO: Change plugin caption (title to appear in CT2) and tooltip.
     // You can (and should) provide a user documentation as XML file and an own icon.
-    [PluginInfo("Anonymity", "Applies Anonymity methods to DataSet", "Anonymity/userdoc.xml", new[] { "CrypWin/images/default.png" })]
+    [PluginInfo("CrypTool.Plugins.Anonymity.Properties.Resources","AnonymityCaption", "AnonymityTooltip", "Anonymity/userdoc.xml", new[] { "CrypWin/images/default.png" })]
     // HOWTO: Change category to one that fits to your plugin. Multiple categories are allowed.
     [ComponentCategory(ComponentCategory.CiphersClassic)]
     public class Anonymity : ICrypComponent
@@ -46,6 +48,9 @@ namespace CrypTool.Plugins.Anonymity
         
 
 
+
+
+
         #endregion
 
         #region Data Properties
@@ -54,7 +59,7 @@ namespace CrypTool.Plugins.Anonymity
         /// HOWTO: Input interface to read the input data. 
         /// You can add more input properties of other type if needed.
         /// </summary>
-        [PropertyInfo(Direction.InputData, "Input CSV", "Text in CSV-format")]
+        [PropertyInfo(Direction.InputData, "InputCaption", "InputTooltip")]
         public string InputCSV
         {
             get
@@ -71,7 +76,7 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-        [PropertyInfo(Direction.OutputData, "Output Data", "Anonymized DataSet")]
+        [PropertyInfo(Direction.OutputData, "OutputCaption", "OutputTooltip")]
         public  string OutputData
         {
             get
@@ -123,42 +128,56 @@ namespace CrypTool.Plugins.Anonymity
         public void PreExecution()
         {
 
+         
 
-           
         }
 
         public void Execute()
         {
-            if (string.IsNullOrEmpty(_csv))
+
+
+            // if input is empty EmptyMessage is shown
+            if (string.IsNullOrWhiteSpace(_csv))
             {
-                GuiLogMessage("Empty CSV. Can not process.", NotificationLevel.Warning);
+                GuiLogMessage(Properties.Resources.EmptyMessage, NotificationLevel.Warning);
                 return;
             }
-
+        
 
 
             try
             {
 
-               
+              
                 string rowSeperator = ProcessEscapeSymbols(_settings.RowSeparator);
                 string columnSeperator = ProcessEscapeSymbols(_settings.ColumnSeparator);
+                string clearedCsv = _csv.Trim();
                 OutputData = _csv;
 
-
-                if (!_csv.Contains(rowSeperator) || !_csv.Contains(columnSeperator))
+                // checks if rowSeperator is in the input, if not OneRowMessage is shown
+                if (!clearedCsv.Contains(rowSeperator))
                 {
-                    GuiLogMessage("CSV does not contain the specified row or column separator. Cannot process.", NotificationLevel.Warning);
+                    GuiLogMessage(Properties.Resources.OneRowMessage, NotificationLevel.Warning);
                     return;
                 }
 
+                // If either row separator or column seperator are not in the input warning shown
+                if (!_csv.Contains(rowSeperator) || !_csv.Contains(columnSeperator))
+                {
+                    GuiLogMessage(Properties.Resources.NoSeperatorMessage, NotificationLevel.Warning);
+                    return;
+                }
+     
+
                 Presentation.Dispatcher.Invoke(DispatcherPriority.Normal, (SendOrPostCallback)delegate
                 {
-
+                   
                     _presentation.ClearPresentation();
-                    _presentation.CreateDataTableAndComboboxes(_csv, rowSeperator, columnSeperator);    
-                    _presentation.DataTableChanged += Presentation_DataTableChanged;
-                
+                    _presentation.CreateDataTableAndComboboxes(_csv, rowSeperator, columnSeperator);
+                    // _presentation.Deserialize();
+ 
+                    _presentation.DataTableChanged += DataTableChanged;
+                   
 
                 }, null);
 
@@ -167,7 +186,7 @@ namespace CrypTool.Plugins.Anonymity
             catch (Exception ex)
             {
 
-                GuiLogMessage(string.Format("Exception occured during processing of CSV: {0}", ex.Message), NotificationLevel.Error);
+                GuiLogMessage(string.Format(Properties.Resources.ExceptionMessage, ex.Message), NotificationLevel.Error);
 
             }
 
@@ -189,12 +208,14 @@ namespace CrypTool.Plugins.Anonymity
 
 
 
-        private void Presentation_DataTableChanged(object sender, EventArgs e)
+
+        // if the datatable changes send the new table state to the output
+        private void DataTableChanged(object sender, EventArgs e)
         {
-            var dataGrid = _presentation.table;
+            var dataTable = _presentation.table;
             StringBuilder csv = new StringBuilder();
 
-            foreach (DataGridColumn column in dataGrid.Columns)
+            foreach (DataGridColumn column in dataTable.Columns)
             {
                 if (column.Visibility == Visibility.Visible)
                 {
@@ -205,12 +226,12 @@ namespace CrypTool.Plugins.Anonymity
 
             csv.AppendLine();
 
-            foreach (DataRowView rowView in dataGrid.Items)
+            foreach (DataRowView rowView in dataTable.Items)
             {
                 DataRow row = rowView.Row;
                 foreach (DataColumn column in row.Table.Columns)
                 {
-                    if (column.Ordinal < dataGrid.Columns.Count && dataGrid.Columns[column.Ordinal].Visibility == Visibility.Visible)
+                    if (column.Ordinal < dataTable.Columns.Count && dataTable.Columns[column.Ordinal].Visibility == Visibility.Visible)
                     {
                         csv.Append(row[column.ColumnName]);
                         csv.Append(",");
@@ -297,7 +318,7 @@ namespace CrypTool.Plugins.Anonymity
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        private void GuiLogMessage(string message, NotificationLevel logLevel)
+        public void GuiLogMessage(string message, NotificationLevel logLevel)
         {
             EventsHelper.GuiLogMessage(OnGuiLogNotificationOccured, this, new GuiLogEventArgs(message, this, logLevel));
         }

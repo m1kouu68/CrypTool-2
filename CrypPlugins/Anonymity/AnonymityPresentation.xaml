@@ -170,7 +170,7 @@
 
 
                         <StackPanel
-                x:Name="functionContainer"
+                x:Name="categoricContainer"
       
                  HorizontalAlignment="Stretch"
                 ScrollViewer.CanContentScroll="True"

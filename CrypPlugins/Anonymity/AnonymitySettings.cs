@@ -28,6 +28,8 @@ namespace CrypTool.Plugins.Anonymity
         private string _rowSeparator = "\\n";
         private string _columnSeparator = ",";
 
+        //serialize
+       // private string serializedData = string.Empty;
         #endregion
 
         #region TaskPane Settings
@@ -73,6 +75,21 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
+        // serialize
+        /*
+        public string SerializedData
+        {
+            get => serializedData;
+            set
+            {
+                if (!serializedData.Equals(value))
+                {
+                    serializedData = value;
+                    OnPropertyChanged("SerializedData");
+                }
+            }
+        }
+        */
 
         #endregion
 
