@@ -11,7 +11,7 @@ namespace CrypTool.Plugins.Anonymity
 {
     public class EquivalenceClassColor : IValueConverter
     {
-        private readonly List<Brush> _colors = new List<Brush>
+        private readonly List<Brush> colors = new List<Brush>
     {
    
         Brushes.LightBlue,
@@ -28,7 +28,7 @@ namespace CrypTool.Plugins.Anonymity
 
                 // get the index of the color in the listth
                 int groupID = (int)value;
-                return _colors[groupID % _colors.Count];
+                return colors[groupID % colors.Count];
 
             
             }
