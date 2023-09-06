@@ -32,7 +32,6 @@ namespace CrypTool.Plugins.Anonymity
     {
         public delegate void DataTableChangedEventHandler(object sender, EventArgs e);
         public event DataTableChangedEventHandler DataTableChanged;
-        private readonly CrypTool.Plugins.Anonymity.Anonymity anonymity;
         private List<ComboBox> hiddenComboboxes = new List<ComboBox>();
         private List<ComboBox> labelComboboxes = new List<ComboBox>();
         private bool isDragging = false;
@@ -585,7 +584,7 @@ namespace CrypTool.Plugins.Anonymity
 
             }catch(Exception ex)
             {
-                anonymity.GuiLogMessage(Properties.Resources.ExceptionMessage + " " + ex.Message, NotificationLevel.Error);
+                Console.WriteLine(Properties.Resources.ExceptionMessage + " " + ex.Message, NotificationLevel.Error);
                 return;
             }
         }
@@ -947,7 +946,7 @@ namespace CrypTool.Plugins.Anonymity
 
             }catch(Exception ex)
             {
-                anonymity.GuiLogMessage(Properties.Resources.ExceptionMessage + " " + ex.Message, NotificationLevel.Error);
+                Console.WriteLine(Properties.Resources.ExceptionMessage + " " + ex.Message, NotificationLevel.Error);
                 return;
             }
         }
@@ -1128,7 +1127,7 @@ namespace CrypTool.Plugins.Anonymity
 
             }catch(Exception ex)
             {
-                anonymity.GuiLogMessage(Properties.Resources.ExceptionMessage + " " + ex.Message, NotificationLevel.Error);
+                Console.WriteLine(Properties.Resources.ExceptionMessage + " " + ex.Message, NotificationLevel.Error);
                 return;
             }
         }
@@ -1274,7 +1273,7 @@ namespace CrypTool.Plugins.Anonymity
 
             }catch(Exception ex)
             {
-                anonymity.GuiLogMessage(Properties.Resources.ExceptionMessage + " " + ex.Message, NotificationLevel.Error);
+                Console.WriteLine(Properties.Resources.ExceptionMessage + " " + ex.Message, NotificationLevel.Error);
                 return;
             }
         }
@@ -1687,7 +1686,7 @@ namespace CrypTool.Plugins.Anonymity
 
             }catch(Exception ex)
             {
-                anonymity.GuiLogMessage(Properties.Resources.ExceptionMessage + " " + ex.Message, NotificationLevel.Error);
+                Console.WriteLine(Properties.Resources.ExceptionMessage + " " + ex.Message, NotificationLevel.Error);
                 return;
             }
         }
@@ -1867,7 +1866,7 @@ namespace CrypTool.Plugins.Anonymity
 
             }catch(Exception ex)
             {
-                anonymity.GuiLogMessage(Properties.Resources.ExceptionMessage + " " + ex.Message, NotificationLevel.Error);
+                Console.WriteLine(Properties.Resources.ExceptionMessage + " " + ex.Message, NotificationLevel.Error);
                 return;
             }
             
@@ -2106,7 +2105,7 @@ namespace CrypTool.Plugins.Anonymity
                 CenterColumnDataByName("Entropy");
             }catch(Exception ex)
             {
-                anonymity.GuiLogMessage(Properties.Resources.ExceptionMessage + " " + ex.Message, NotificationLevel.Error);
+                Console.WriteLine(Properties.Resources.ExceptionMessage + " " + ex.Message, NotificationLevel.Error);
                 return;
             }
         }
@@ -2478,11 +2477,11 @@ namespace CrypTool.Plugins.Anonymity
 
         // method for calculating the t value if the Sensitive attribute is numeric. Is called when there are no equivalence classes in the table and every row represents a single group
 
-        public double CalculateEMDNumericSingleRowGroup(DataRow currentRow, DataTable dt, int sensitiveIndex, List<double> orderedSensitiveValues)
+        public double CalculateEMDNumericSingleRowGroup(DataRow row, DataTable dt, int sensitiveIndex, List<double> orderedSensitiveValues)
         {
             double tValue = 0;
             double r = 0;
-            double currentValue = double.Parse(currentRow[sensitiveIndex].ToString());
+            double currentValue = double.Parse(row[sensitiveIndex].ToString());
 
             for (int i = 0; i < orderedSensitiveValues.Count - 1; i++)
             {
@@ -2502,14 +2501,14 @@ namespace CrypTool.Plugins.Anonymity
 
 
         // method for calculating the t value if the Sensitive attribute is categoric. Is called when there are no equivalence classes in the table and every row represents a single group
-        private double CalculateEMDCategoricSingleRowGroup(DataTable dt, int sensitiveIndex, List<object> distinctSensitiveValues, DataRow dtRow)
+        private double CalculateEMDCategoricSingleRowGroup(DataTable dt, int sensitiveIndex, List<object> distinctSensitiveValues, DataRow row)
         {
             double tValue = 0;
             foreach (var sensitiveValue in distinctSensitiveValues)
             {
                 int countSensitive = dt.AsEnumerable().Count(rowData => rowData[sensitiveIndex].Equals(sensitiveValue));
                 double overallDistribution = countSensitive / (double)dt.Rows.Count;
-                if (sensitiveValue.Equals(dtRow[sensitiveIndex]))
+                if (sensitiveValue.Equals(row[sensitiveIndex]))
                 {
                     tValue += 1 - overallDistribution;
                 }
@@ -2696,9 +2695,9 @@ namespace CrypTool.Plugins.Anonymity
 
 
         // checks which tab is currently selected and calles the corresponding table method
-        private void CheckSelectedTab(TabControl tabControl)
+        private void CheckSelectedTab(TabControl control)
         {
-            var selectedTab = tabControl.SelectedItem as TabItem;
+            var selectedTab = control.SelectedItem as TabItem;
 
             if (selectedTab != null)
             {
