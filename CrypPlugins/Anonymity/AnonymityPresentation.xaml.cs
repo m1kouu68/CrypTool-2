@@ -1,4 +1,20 @@
-﻿using System;
+﻿/*
+   Copyright Mikail Sarier, University of Mannheim
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -38,18 +54,9 @@ namespace CrypTool.Plugins.Anonymity
         private Point startPoint;
         private DataTable initialTable;
         private List<Button> _buttonList = new List<Button>();
-        public DataTable dt;
+        public DataTable dataTable;
         private string[] headers;
         private List<Label> identMessageLabels = new List<Label>();
-
-
-  
-
-
-        // serialize
-        //  public AnonymitySettings Settings = new AnonymitySettings();
-
-
 
         public AnonymityPresentation()
         {
@@ -57,11 +64,12 @@ namespace CrypTool.Plugins.Anonymity
 
         }
 
+        /// <summary>
+        /// clear presentation, remove all elements in the class lists and stackpanels
+        /// </summary>
 
-        // clear presentation, remove all elements in the class lists and stackpanels
         public void ClearPresentation()
         {
-    
             hiddenComboboxes?.Clear();
             labelComboboxes?.Clear();
             headerlabels?.Children.Clear();
@@ -76,7 +84,6 @@ namespace CrypTool.Plugins.Anonymity
                 }
             }
 
-
             if (categoricContainer != null)
             {
                 foreach (StackPanel childStackPanel in categoricContainer.Children.OfType<StackPanel>())
@@ -86,7 +93,6 @@ namespace CrypTool.Plugins.Anonymity
                 categoricContainer.Children.Clear();
             }
 
-   
             if (numericContainer != null)
             {
                 foreach (StackPanel childStackPanel in numericContainer.Children.OfType<StackPanel>())
@@ -98,29 +104,23 @@ namespace CrypTool.Plugins.Anonymity
         }
 
 
-        // create the datatable in the presentation
+
+        /// <summary>
+        /// create the datatable in the presentation
+        /// </summary>
+        /// <param name="InputCsv"></param>
+        /// <param name="RowSeperator"></param>
+        /// <param name="ColumnSeperator"></param>
         public void CreateDataTableAndComboboxes(string InputCsv, string RowSeperator, string ColumnSeperator)
         {
-
-         
-
-                dt = new DataTable();
-
-
-
+            dataTable = new DataTable();
                 string[] lines = InputCsv.Split(new[] { "\r\n", RowSeperator }, StringSplitOptions.RemoveEmptyEntries);
-
-
                 // split the first line into an array of headers
                 headers = lines[0].Split(ColumnSeperator.ToArray(), StringSplitOptions.RemoveEmptyEntries);
-
-
-
-
                 // add columns to the table
                 foreach (string header in headers)
                 {
-                    dt.Columns.Add(header);
+                dataTable.Columns.Add(header);
                 }
 
 
@@ -179,18 +179,16 @@ namespace CrypTool.Plugins.Anonymity
                     string[] values = lines[i].Split(ColumnSeperator.ToArray(), StringSplitOptions.RemoveEmptyEntries);
                     
                 // only the rows whose values match the amount of columns are added
-                if (values.Length == dt.Columns.Count)
+                if (values.Length == dataTable.Columns.Count)
                     {
-                        dt.Rows.Add(values);
+                    dataTable.Rows.Add(values);
                     }
                 }
 
-
-
                 // set default data type values for comboboxes
-                SetDataTypeForColumns(hiddenComboboxes, dt);
+                SetDataTypeForColumns(hiddenComboboxes, dataTable);
                 // datatable bind to datagrid in presentation
-                table.ItemsSource = dt.DefaultView;
+                table.ItemsSource = dataTable.DefaultView;
                 table.AutoGeneratingColumn += DataGrid_AutoGeneratingColumn;
                 table.CanUserSortColumns = false;
                 table.CanUserAddRows = false;
@@ -198,34 +196,26 @@ namespace CrypTool.Plugins.Anonymity
                 table.CanUserResizeColumns = false;
                 table.CanUserAddRows = false;
                 table.CanUserDeleteRows = false;
-
                 //initial state of table is copied
-                initialTable = dt.Copy();
+                initialTable = dataTable.Copy();
                 GenerateNumericItems();
                 GenerateCategoricItems();
-  
-
-
-
-
-
 
         }
 
-        
-
-
-
-        // data table changed event
+        /// <summary>
+        ///  data table changed event
+        /// </summary>
         public virtual void OnDataTableChanged()
         {
             DataTableChanged?.Invoke(this, EventArgs.Empty);
         }
 
-
-
-
-        // the selection of only one sensitive column is enforced
+        /// <summary>
+        /// the selection of only one sensitive column is enforced
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void EnforceSingleSensitive(object sender, SelectionChangedEventArgs e)
         {
             ComboBox currentBox = sender as ComboBox;
@@ -251,11 +241,12 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
+        /// <summary>
+        ///  make the columns GroupID, IsGroupStart, IsGroupEnd always invisible
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
 
-
-
-
-        // make the columns GroupID, IsGroupStart, IsGroupEnd always invisible
         private void DataGrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
         {
             if (e == null || e.Column == null)
@@ -276,26 +267,25 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
+        /// <summary>
+        ///  remove / generate categoric and numeric items after combobox value is selected by user
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
 
-        //  remove / generate categoric and numeric items after combobox value is selected by user  
         private void HandleItemCreation(object sender, SelectionChangedEventArgs e)
         {
-
             ComboBox combo = sender as ComboBox;
-
             if (combo == null || combo.SelectedItem == null)
             {
                 return;
             }
 
-
-
             DataTable init = initialTable.Copy();
-            var rows = dt.AsEnumerable().ToList();
+            var rows = dataTable.AsEnumerable().ToList();
             var initialRows = init.AsEnumerable().ToList();
             for (int i = 0; i < labelComboboxes.Count; i++)
             {
-
                 if (labelComboboxes[i] == null || hiddenComboboxes[i] == null)
                 {
                     continue;
@@ -303,13 +293,11 @@ namespace CrypTool.Plugins.Anonymity
                 else if (labelComboboxes[i] == combo && combo.SelectedItem.ToString() != "Quasi-identifier" && hiddenComboboxes[i].SelectedItem.ToString() == "Categoric")
                 {
 
-
                     // check if index is within column indices
-                    if (i < 0 || i >= dt.Columns.Count)
+                    if (i < 0 || i >= dataTable.Columns.Count)
                     {
                         continue; 
                     }
-
 
                     for (int j = 0; j < rows.Count; j++)
                     {
@@ -324,24 +312,18 @@ namespace CrypTool.Plugins.Anonymity
                     SpecificColumnVisibility(i);
                     RemoveSpecificCategoricItem(headers[i]);
                     CheckSelectedTab(tabSelec);
-               
-
+              
                 }
                 else if (labelComboboxes[i] == combo && combo.SelectedItem.ToString() != "Quasi-identifier" && hiddenComboboxes[i].SelectedItem.ToString() == "Numeric")
                 {
                     // check if index is within column indices
-                    if (i < 0 || i >= dt.Columns.Count)
+                    if (i < 0 || i >= dataTable.Columns.Count)
                     {
                         continue;
                     }
 
-
-
                     for (int j = 0; j < rows.Count; j++)
                     {
-
-
-
                         if (i >= rows[j].ItemArray.Length || i >= initialRows[j].ItemArray.Length)
                         {
                             continue;
@@ -368,7 +350,6 @@ namespace CrypTool.Plugins.Anonymity
                  
                 }
 
-
             }
             for (int a = 0; a < labelComboboxes.Count; a++)
             {
@@ -377,15 +358,16 @@ namespace CrypTool.Plugins.Anonymity
                     CenterColumnData(a);
                 }
             }
-
-          //  Serialize();
-
         }
 
-        // set default data type values for comboboxes to determine if they are categoric or numeric
-        public void SetDataTypeForColumns(List<ComboBox> hiddenComboboxes, DataTable dt)
+        /// <summary>
+        ///  set default data type values for comboboxes to determine if they are categoric or numeric
+        /// </summary>
+        /// <param name="hiddenComboboxes"></param>
+        /// <param name="dt"></param>
+        public void SetDataTypeForColumns(List<ComboBox> hiddenComboboxes, DataTable dataTable)
         {
-            if (hiddenComboboxes == null || dt == null)
+            if (hiddenComboboxes == null || dataTable == null)
             {
                 return;
             }
@@ -394,14 +376,14 @@ namespace CrypTool.Plugins.Anonymity
             {
                 ComboBox currentComboBox = hiddenComboboxes[columnIndex];
 
-                if (columnIndex >= dt.Columns.Count || currentComboBox == null)
+                if (columnIndex >= dataTable.Columns.Count || currentComboBox == null)
                 {
                     continue;
                 }
 
                 bool isColumnNumeric = true;
 
-                foreach (DataRow row in dt.Rows)
+                foreach (DataRow row in dataTable.Rows)
                 {
                     object cellValue = row[columnIndex];
 
@@ -421,11 +403,12 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
+        /// <summary>
+        ///  if combobox next to the column headers is set to Quasi-Identifier, the comboboxes with the items categoric and numeric appear
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
 
-
-
-
-        // if combobox next to the column headers is set to Quasi-Identifier, the comboboxes with the items categoric and numeric appear
         private void ComboBoxSelectionQuasiIdentifier(object sender, SelectionChangedEventArgs e)
         {
             ComboBox combobox = sender as ComboBox;
@@ -438,7 +421,6 @@ namespace CrypTool.Plugins.Anonymity
             {
                 return;
             }
-
             if (combobox.SelectedItem != null && combobox.SelectedItem.ToString() == "Quasi-identifier")
             {
                 identMessageLabels[selectedIndex].Visibility = Visibility.Hidden;
@@ -464,10 +446,9 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
-
-
-
-        // numeric items created, according to index of hiddencomboboxes the corresponding column values are used
+        /// <summary>
+        ///  numeric items created, according to index of hiddencomboboxes the corresponding column values are used
+        /// </summary>
         private void GenerateNumericItems()
         {
             if (hiddenComboboxes == null || !hiddenComboboxes.Any())
@@ -475,10 +456,8 @@ namespace CrypTool.Plugins.Anonymity
                 return;
             }
 
-
             try
             {
-
                 for (int i = 0; i < hiddenComboboxes.Count(); i++)
                 {
 
@@ -496,8 +475,6 @@ namespace CrypTool.Plugins.Anonymity
                         List<string> distinctValues = table.Items.OfType<DataRowView>()
                                           .Select(row => row.Row.ItemArray[i].ToString())
                                           .Distinct().ToList();
-
-
                         var canvas = new Canvas();
                         canvas.Margin = new Thickness(0, 1, 0, 0);
                         var margin = 5;
@@ -505,22 +482,18 @@ namespace CrypTool.Plugins.Anonymity
                         canvas.Height = 55;
                         canvas.HorizontalAlignment = HorizontalAlignment.Left;
                         canvas.VerticalAlignment = VerticalAlignment.Top;
-
                         SortNumericValues(distinctValues);
-
-
                         var textblock = new TextBlock();
                         textblock.FontWeight = FontWeights.DemiBold;
                         textblock.FontSize = 14.0;
                         textblock.Foreground = Brushes.Black;
                         textblock.Margin = new Thickness(0, 10, 10, 10);
 
-
-                        if (i >= dt.Columns.Count)
+                        if (i >= dataTable.Columns.Count)
                         {
                             continue;
                         }
-                        textblock.Text = dt.Columns[i].ColumnName;
+                        textblock.Text = dataTable.Columns[i].ColumnName;
                         var stackPanel = new StackPanel { Orientation = Orientation.Horizontal };
                         numericContainer.Children.Add(textblock);
 
@@ -581,7 +554,6 @@ namespace CrypTool.Plugins.Anonymity
                     }
                 }
 
-
             }catch(Exception ex)
             {
                 Console.WriteLine(Properties.Resources.ExceptionMessage + " " + ex.Message, NotificationLevel.Error);
@@ -589,8 +561,10 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
-
-        // int, long, decimal parse is used so that big numeric values which are bigger than the range of integer can be processed
+        /// <summary>
+        ///  int, long, decimal parse is used so that big numeric values which are bigger than the range of integer can be processed
+        /// </summary>
+        /// <param name="values"></param>
         public void SortNumericValues(List<string> values)
         {
             if (values == null)
@@ -640,11 +614,13 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
-
-        // grouping after clicking on inverse button
+        /// <summary>
+        ///  grouping after clicking on inverse button
+        /// </summary>
+        /// <param name="canvas"></param>
+        /// <param name="columnIndex"></param>
         private void InverseGrouping(Canvas canvas, int columnIndex)
         {
-
             if (canvas == null)
             {
                 return;
@@ -668,8 +644,13 @@ namespace CrypTool.Plugins.Anonymity
             HandleGrouping(null, canvas, columnIndex);
         }
 
-
-        // rectangle mousleftbuttondown event handler
+        /// <summary>
+        ///  rectangle mousleftbuttondown event handler
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        ///  <param name="canvas"></param>
+        ///  <param name="columnIndex"></param>
         private void Rect_MouseLeftButtonDown(object sender, MouseButtonEventArgs e, Canvas canvas, int columnIndex)
         {
             var rect = sender as Rectangle;
@@ -687,9 +668,10 @@ namespace CrypTool.Plugins.Anonymity
             HandleGrouping(rect, canvas, columnIndex);
         }
 
-
-        // handle rectangle coloring
-
+        /// <summary>
+        ///  handle rectangle coloring
+        /// </summary>
+        /// <param name="rect"></param>
         private void RectangleColoring(Rectangle rect)
         {
             if (rect.Fill == Brushes.LightGray)
@@ -702,14 +684,16 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
-
-
-        // grouping for numeric items
-  
+        /// <summary>
+        ///  grouping for numeric items
+        /// </summary>
+        /// <param name="clickedRect"></param>
+        /// <param name="canvas"></param>
+        ///  <param name="columnIndex"></param>
         private void HandleGrouping(Rectangle clickedRect, Canvas canvas, int columnIndex)
         {
             DataTable init = initialTable.Copy();
-            var rows = dt.AsEnumerable().ToList();
+            var rows = dataTable.AsEnumerable().ToList();
             var initialRows = init.AsEnumerable().ToList();
 
             if (rows.Any() && initialRows.Any() && columnIndex >= 0 && columnIndex < rows[0].ItemArray.Length)
@@ -770,8 +754,6 @@ namespace CrypTool.Plugins.Anonymity
                                     }
                                 }
                             }
-
-
                             inGroup = false;
                             first = int.MaxValue;
                             second = int.MinValue;
@@ -779,8 +761,6 @@ namespace CrypTool.Plugins.Anonymity
                     }
                 }
             }
-
-
             if (inGroup && prevTextBlock != null)
             {
 
@@ -800,22 +780,18 @@ namespace CrypTool.Plugins.Anonymity
                     }
                 }
             }
-
             CalculateKValueAndGroups();
-
             CheckSelectedTab(tabSelec);
         }
 
-        // categoric items are created
+        /// <summary>
+        ///  categoric items are created
+        /// </summary>
         private void GenerateCategoricItems()
         {
 
             try
             {
-
-
-          
-
                 for (int i = 0; i < hiddenComboboxes.Count(); i++)
                 {
                     if (hiddenComboboxes[i].SelectedItem != null && hiddenComboboxes[i].SelectedItem.ToString() == "Categoric" && hiddenComboboxes[i].Visibility == Visibility.Visible)
@@ -823,7 +799,7 @@ namespace CrypTool.Plugins.Anonymity
                         int index = i;
 
                         // distinct values of the corresponding column in the table are taken
-                        List<string> distinctValues = dt.AsEnumerable()
+                        List<string> distinctValues = dataTable.AsEnumerable()
                                 .Select(row => row.Field<string>(i))
                                 .Distinct().ToList();
 
@@ -839,7 +815,7 @@ namespace CrypTool.Plugins.Anonymity
                         textblock.Foreground = Brushes.Black;
                         textblock.Margin = new Thickness(0, 10, 10, 10);
 
-                        textblock.Text = dt.Columns[i].ColumnName;
+                        textblock.Text = dataTable.Columns[i].ColumnName;
 
                         // canvas is filled with the distinct values of the column
                         for (int j = 0; j < distinctValues.Count; j++)
@@ -906,7 +882,7 @@ namespace CrypTool.Plugins.Anonymity
                                 }
 
                                 UpdateCategoricColumn(canvas, index);
-                             //   SaveBorderPosition(canvas);
+                           
                             };
 
                             Canvas.SetLeft(border, currentLeft);
@@ -921,7 +897,7 @@ namespace CrypTool.Plugins.Anonymity
 
                             canvas.Children.Add(border);
                         }
-                       // SaveBorderPosition(canvas);
+                 
                         canvas.Width = currentLeft;
 
                         var stackPanel = new StackPanel { Orientation = Orientation.Horizontal };
@@ -935,15 +911,9 @@ namespace CrypTool.Plugins.Anonymity
                         scrollViewer.Content = stackPanel;
                         categoricContainer.Children.Add(scrollViewer);
 
-
-
                     }
                 }
                 CalculateKValueAndGroups();
-
-
-
-
             }catch(Exception ex)
             {
                 Console.WriteLine(Properties.Resources.ExceptionMessage + " " + ex.Message, NotificationLevel.Error);
@@ -951,17 +921,16 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
-
-        // remove categoric item if it is not classified as Quasi-Identifier by the user
+        /// <summary>
+        ///  remove categoric item if it is not classified as Quasi-Identifier by the user
+        /// </summary>
+        /// <param name="columnName"></param>
         private void RemoveSpecificCategoricItem(string columnName)
         {
-
             if (categoricContainer == null)
             {
                 return;
             }
-
-
             var childrenCopy = categoricContainer.Children.Cast<UIElement>().ToList();
             for (int i = 0; i < childrenCopy.Count; i++)
             {
@@ -984,7 +953,10 @@ namespace CrypTool.Plugins.Anonymity
             CalculateKValueAndGroups();
         }
 
-        // remove numeric item if it is not classified as Quasi-Identifier by the user
+        /// <summary>
+        ///  remove numeric item if it is not classified as Quasi-Identifier by the user
+        /// </summary>
+        /// <param name="columnName"></param>
         private void RemoveSpecificNumericItem(string columnName)
         {
 
@@ -1016,26 +988,26 @@ namespace CrypTool.Plugins.Anonymity
             CalculateKValueAndGroups();
         }
 
-        // generate numeric item if it is classified as Quasi-Identifier by the user
+        /// <summary>
+        ///  generate numeric item if it is classified as Quasi-Identifier by the user
+        /// </summary>
+        /// <param name="index"></param>
         private void GenerateSpecificNumericItem(int index)
         {
-
-
-            if (dt == null || numericContainer == null)
+            if (dataTable == null || numericContainer == null)
             {
                 return;
             }
 
-            if (index < 0 || index >= dt.Columns.Count)
+            if (index < 0 || index >= dataTable.Columns.Count)
             {
                 return;
             }
-
 
             try
             {
 
-                List<string> distinctValues = dt.AsEnumerable()
+                List<string> distinctValues = dataTable.AsEnumerable()
                                  .Select(row => row[index].ToString())
                                  .Distinct().ToList();
                 var canvas = new Canvas();
@@ -1054,7 +1026,7 @@ namespace CrypTool.Plugins.Anonymity
                 textblock.Foreground = Brushes.Black;
                 textblock.Margin = new Thickness(0, 10, 10, 10);
 
-                textblock.Text = dt.Columns[index].ColumnName;
+                textblock.Text = dataTable.Columns[index].ColumnName;
                 var stackPanel = new StackPanel { Orientation = Orientation.Horizontal };
                 numericContainer.Children.Add(textblock);
 
@@ -1123,8 +1095,6 @@ namespace CrypTool.Plugins.Anonymity
                     numericContainer.Children.Add(scrollViewer);
                 }
 
-
-
             }catch(Exception ex)
             {
                 Console.WriteLine(Properties.Resources.ExceptionMessage + " " + ex.Message, NotificationLevel.Error);
@@ -1132,27 +1102,26 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
-        // generate categoric item if it is classified as Quasi-Identifier by the user
+        /// <summary>
+        ///  generate categoric item if it is classified as Quasi-Identifier by the user
+        /// </summary>
+        /// <param name="index"></param>
         private void GenerateSpecificCategoricItem(int index)
         {
 
 
-            if (dt == null || categoricContainer == null)
+            if (dataTable == null || categoricContainer == null)
             {
                 return;
             }
 
-            if (index < 0 || index >= dt.Columns.Count)
+            if (index < 0 || index >= dataTable.Columns.Count)
             {
                 return;
             }
-
-
             try
             {
-
-
-                List<string> distinctValues = dt.AsEnumerable()
+                List<string> distinctValues = dataTable.AsEnumerable()
                                 .Select(row => row.Field<string>(index))
                                 .Distinct().ToList();
 
@@ -1168,7 +1137,7 @@ namespace CrypTool.Plugins.Anonymity
                 textblock.Foreground = Brushes.Black;
                 textblock.Margin = new Thickness(0, 10, 10, 10);
 
-                textblock.Text = dt.Columns[index].ColumnName;
+                textblock.Text = dataTable.Columns[index].ColumnName;
 
                 for (int j = 0; j < distinctValues.Count; j++)
                 {
@@ -1269,8 +1238,6 @@ namespace CrypTool.Plugins.Anonymity
 
                 CalculateKValueAndGroups();
 
-
-
             }catch(Exception ex)
             {
                 Console.WriteLine(Properties.Resources.ExceptionMessage + " " + ex.Message, NotificationLevel.Error);
@@ -1278,7 +1245,12 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
-        // categoric column in datatable is updated according to intersecting or non-intersecting of categoric items
+        /// <summary>
+        ///  categoric column in datatable is updated according to intersecting or non-intersecting of categoric items
+        /// </summary>
+        /// <param name="canvas"></param>
+        /// <param name="columnIndex"></param>
+
         private void UpdateCategoricColumn(Canvas canvas, int columnIndex)
         {
            
@@ -1286,7 +1258,6 @@ namespace CrypTool.Plugins.Anonymity
             {
                 return;
             }
-            
             var groups = new List<List<string>>();
             DataTable init = initialTable.Copy();
 
@@ -1332,7 +1303,7 @@ namespace CrypTool.Plugins.Anonymity
                     }
                 }
             }
-            var rows = dt.AsEnumerable().ToList();
+            var rows = dataTable.AsEnumerable().ToList();
             for (int i = 0; i < rows.Count; ++i)
             {
                 rows[i][columnIndex] = init.Rows[i][columnIndex];
@@ -1357,11 +1328,13 @@ namespace CrypTool.Plugins.Anonymity
             }
 
             CalculateKValueAndGroups();
-
-
             CheckSelectedTab(tabSelec);
         }
 
+        /// <summary>
+        ///  call AsteriskColumnData method if column classified as identifier
+        /// </summary>
+        /// <param name="index"></param>
         private void SpecificColumnVisibility(int index)
         {
             DataTable init = initialTable.Copy();
@@ -1377,28 +1350,30 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
-        // This method replaces all the cell values in the given column with '*'
+        /// <summary>
+        ///  This method replaces all the cell values in the given column with '*'
+        /// </summary>
+        ///  <param name="columnIndex"></param>
         private void AsteriskColumnData(int columnIndex)
         {
-
-            if (dt == null)
+            if (dataTable == null)
             {
                 return; 
             }
 
-            foreach (DataRow row in dt.Rows)
+            foreach (DataRow row in dataTable.Rows)
             {
                 if (row.Table.Columns.Count > columnIndex)
                 {
                     row[columnIndex] = "*";
                 }
             }
-
-
         }
 
-
-        // method for centering the values in a column
+        /// <summary>
+        ///  method for centering the values in a column
+        /// </summary>
+        ///  <param name="columnIndex"></param>
         private void CenterColumnData(int columnIndex)
         {
             if (table.Columns.Count > columnIndex)
@@ -1409,8 +1384,11 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
+        /// <summary>
+        ///  method for centering the values in a column centrally by columname
+        /// </summary>
+        ///  <param name="columnName"></param>
 
-        // method for centering the values in a column centrally by columname
         private void CenterColumnDataByName(string columnName)
         {
             var column = table.Columns.FirstOrDefault(c => c.Header != null && c.Header.ToString() == columnName);
@@ -1423,12 +1401,16 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
-        // This method restores the original data in the given column
+        /// <summary>
+        ///  This method restores the original data in the given column
+        /// </summary>
+        /// <param name="columnIndex"></param>
+        /// <param name="init"></param>
         private void RestoreColumnData(int columnIndex, DataTable init)
         {
-            for (int i = 0; i < dt.Rows.Count; i++)
+            for (int i = 0; i < dataTable.Rows.Count; i++)
             {
-                DataRow row = dt.Rows[i];
+                DataRow row = dataTable.Rows[i];
                 if (row.Table.Columns.Count > columnIndex)
                 {
                     row[columnIndex] = init.Rows[i][columnIndex];
@@ -1436,17 +1418,16 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
-        // calculation of k for k-Anonymity
+        /// <summary>
+        ///  calculation of k for k-Anonymity
+        /// </summary>
         private void CalculateKValueAndGroups()
         {
 
-
-            if (dt == null || labelComboboxes == null || table == null)
+            if (dataTable == null || labelComboboxes == null || table == null)
             {
                 return;
             }
-
-
             // Find the column indexes with "Quasi-Identifier" selected
             List<int> quasiIdentifierIndexes = new List<int>();
             for (int i = 0; i < labelComboboxes.Count; i++)
@@ -1457,7 +1438,7 @@ namespace CrypTool.Plugins.Anonymity
 
                 }
             }
-            var groupedRows = dt.AsEnumerable()
+            var groupedRows = dataTable.AsEnumerable()
             .GroupBy(row => string.Join("|", quasiIdentifierIndexes.Select(index => row[index])))
             .ToList();
 
@@ -1472,7 +1453,7 @@ namespace CrypTool.Plugins.Anonymity
 
             int amountEquiClass = groupedRows.Count;
 
-            DataTable newT = dt.Clone();
+            DataTable newT = dataTable.Clone();
 
             if (!newT.Columns.Contains("GroupID"))
             {
@@ -1496,7 +1477,7 @@ namespace CrypTool.Plugins.Anonymity
 
             if (minGroupSize == 1)
             {
-                foreach (DataRow row in dt.Rows)
+                foreach (DataRow row in dataTable.Rows)
                 {
                     DataRow newRow = newT.NewRow();
                     newRow.ItemArray = row.ItemArray;
@@ -1539,17 +1520,16 @@ namespace CrypTool.Plugins.Anonymity
                     groupID++;
                 }
             }
-            dt = newT;
-            table.ItemsSource = dt.DefaultView;
+            dataTable = newT;
+            table.ItemsSource = dataTable.DefaultView;
             OnDataTableChanged();
-
-
         }
 
-
-
-
-        // event handling if a tab is selected
+        /// <summary>
+        ///  event handling if a tab is selected
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnTabSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var tabControl = sender as TabControl;
@@ -1587,26 +1567,23 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
+        /// <summary>
+        ///  method for generating the k-Anonymity table
+        /// </summary>
 
-
-        // method for generating the k-Anonymity table
         private void KAnonymityTable()
         {
             try
             {
                 
-                
-
-                if(table != null && dt != null)
+                if(table != null && dataTable != null)
                 {
-                    table.ItemsSource = dt.DefaultView;
+                    table.ItemsSource = dataTable.DefaultView;
                 }
                 else
                 {
                     return;
                 }
-
-
 
                 if(labelComboboxes == null)
                 {
@@ -1614,7 +1591,6 @@ namespace CrypTool.Plugins.Anonymity
                     return;
                 }
 
-                
                 for (int a = 0; a < labelComboboxes.Count; a++)
                 {
                     if (labelComboboxes[a].SelectedItem != null && labelComboboxes[a].SelectedItem.ToString() == "Identifier")
@@ -1632,25 +1608,20 @@ namespace CrypTool.Plugins.Anonymity
                     }
                 }
 
-
-                if(dt == null)
+                if(dataTable == null)
                 {
         
                     return;
                 }
 
-
-
-                int maxValidIndex = dt.Columns.Count - 1;
+                int maxValidIndex = dataTable.Columns.Count - 1;
                 if (quasiIdentifierIndexes.Any(index => index < 0 || index > maxValidIndex))
                 {
 
                     return; 
                 }
 
-
-
-                var groupedRows = dt.AsEnumerable()
+                var groupedRows = dataTable.AsEnumerable()
                 .GroupBy(row => string.Join("|", quasiIdentifierIndexes.Select(index => row[index])))
                 .ToList();
 
@@ -1660,8 +1631,6 @@ namespace CrypTool.Plugins.Anonymity
                 {
                     minGroupSize = 1;
                 }
-
-
 
                 int amountEquiClass = groupedRows.Count;
                 if (minGroupSize == 1)
@@ -1682,8 +1651,6 @@ namespace CrypTool.Plugins.Anonymity
 
                 }
 
-
-
             }catch(Exception ex)
             {
                 Console.WriteLine(Properties.Resources.ExceptionMessage + " " + ex.Message, NotificationLevel.Error);
@@ -1691,20 +1658,16 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
-
-
-
-        // method for generating the distinct l diversity label
+        /// <summary>
+        ///  method for generating the distinct l diversity label
+        /// </summary>
         private void DistinctLDiversityTable()
         {
 
-            if (labelComboboxes == null || dt == null)
+            if (labelComboboxes == null || dataTable == null)
             {
                 return;
             }
-
-
-
 
             int sensitiveIndex = -1;
             for (int i = 0; i < labelComboboxes.Count; i++)
@@ -1722,13 +1685,8 @@ namespace CrypTool.Plugins.Anonymity
                 tableMessage.Text = "No sensitive column has been assigned, so l-Diversity cannot be calculated. Please mark a column as sensitive so that l-Diversity can be determined.";
                 return;
             }
-
-
             try
             {
-
-
-
                 List<int> quasiIdentifierIndexes = new List<int>();
                 for (int i = 0; i < labelComboboxes.Count; i++)
                 {
@@ -1738,12 +1696,12 @@ namespace CrypTool.Plugins.Anonymity
 
                     }
                 }
-                var equivalenceClass = dt.AsEnumerable()
+                var equivalenceClass = dataTable.AsEnumerable()
                 .GroupBy(row => string.Join("|", quasiIdentifierIndexes.Select(index => row[index])))
                 .ToList();
 
                 int minGroupSize = equivalenceClass.Min(group => group.Count());
-                var groupedRows = dt.AsEnumerable()
+                var groupedRows = dataTable.AsEnumerable()
                     .GroupBy(row => new { GroupId = row["GroupID"], SensitiveValue = row[sensitiveIndex] })
                     .Select(group => new
                     {
@@ -1752,7 +1710,7 @@ namespace CrypTool.Plugins.Anonymity
                         Count = group.Count()
                     })
                     .ToList();
-                var lValue = dt.AsEnumerable()
+                var lValue = dataTable.AsEnumerable()
                     .GroupBy(row => row["GroupID"])
                     .Select(group => new
                     {
@@ -1761,7 +1719,7 @@ namespace CrypTool.Plugins.Anonymity
                     })
                     .ToList();
 
-                DataTable newT = dt.Clone();
+                DataTable newT = dataTable.Clone();
                 if (!newT.Columns.Contains("Frequency"))
                 {
                     newT.Columns.Add("Frequency", typeof(int));
@@ -1774,7 +1732,7 @@ namespace CrypTool.Plugins.Anonymity
                 if (minGroupSize > 1)
                 {
 
-                    var equiClass = dt.AsEnumerable()
+                    var equiClass = dataTable.AsEnumerable()
                  .GroupBy(row => row["GroupID"])
                  .Select(group => new
                  {
@@ -1813,7 +1771,7 @@ namespace CrypTool.Plugins.Anonymity
 
                         foreach (var rowGroup in rowsInGroup)
                         {
-                            DataRow groupRow = dt.AsEnumerable().First(row => row["GroupID"].Equals(rowGroup.GroupId) && row[sensitiveIndex].Equals(rowGroup.SensitiveValue));
+                            DataRow groupRow = dataTable.AsEnumerable().First(row => row["GroupID"].Equals(rowGroup.GroupId) && row[sensitiveIndex].Equals(rowGroup.SensitiveValue));
 
                             DataRow newRow = newT.NewRow();
                             newRow.ItemArray = groupRow.ItemArray;
@@ -1836,7 +1794,7 @@ namespace CrypTool.Plugins.Anonymity
                 else
                 {
 
-                    foreach (DataRow row in dt.Rows)
+                    foreach (DataRow row in dataTable.Rows)
                     {
                         DataRow newRow = newT.NewRow();
                         newRow.ItemArray = row.ItemArray;
@@ -1872,20 +1830,21 @@ namespace CrypTool.Plugins.Anonymity
             
             }
 
-        // method for making the column k-Value collapsed
+        /// <summary>
+        ///  method for making the column k-Value collapsed
+        /// </summary>
         private void ColumnKValueCollapsed()
         {
-
             DataGridColumn kValue = table.Columns.FirstOrDefault(col => col.Header.ToString() == "k-value");
             if (kValue != null)
             {
                 kValue.Visibility = Visibility.Collapsed;
             }
-
-
         }
 
-        // method for making the column k-Value visible
+        /// <summary>
+        ///  method for making the column k-Value visible
+        /// </summary>
         private void ColumnKValueVisible()
         {
 
@@ -1894,22 +1853,15 @@ namespace CrypTool.Plugins.Anonymity
             {
                 kValue.Visibility = Visibility.Visible;
             }
-
-
             CenterColumnDataByName("k-value");
-
         }
 
-
-
-        // method for generating the entropy l diversity label
+        /// <summary>
+        /// method for generating the entropy l diversity label
+        /// </summary>
         private void EntropyLDiversityTable()
         {
-
-
-
-
-            if (labelComboboxes == null || dt == null)
+            if (labelComboboxes == null || dataTable == null)
             {
                 return;
             }
@@ -1929,13 +1881,8 @@ namespace CrypTool.Plugins.Anonymity
                 tableMessage.Text = "No sensitive value is selected, therefore l-Diversity cannot be calculated.";
                 return;
             }
-
-
-
             try
             {
-
-
                 List<int> quasiIdentifierIndexes = new List<int>();
                 for (int i = 0; i < labelComboboxes.Count; i++)
                 {
@@ -1945,7 +1892,7 @@ namespace CrypTool.Plugins.Anonymity
                     }
                 }
 
-                var equiClass = dt.AsEnumerable()
+                var equiClass = dataTable.AsEnumerable()
                     .GroupBy(row => string.Join("|", quasiIdentifierIndexes.Select(index => row[index])))
                     .ToList();
 
@@ -1955,7 +1902,7 @@ namespace CrypTool.Plugins.Anonymity
 
                 int minGroupSize = equiClass.Min(group => group.Count());
 
-                DataTable newT = dt.Clone();
+                DataTable newT = dataTable.Clone();
 
                 if (!newT.Columns.Contains("Frequency (p)"))
                 {
@@ -1974,19 +1921,16 @@ namespace CrypTool.Plugins.Anonymity
 
                 if (minGroupSize > 1)
                 {
-                    var groupedRows = dt.AsEnumerable()
+                    var groupedRows = dataTable.AsEnumerable()
              .GroupBy(row => new { GroupId = row["GroupID"], SensitiveValue = row[sensitiveIndex] })
              .Select(group => new
              {
                  group.Key.GroupId,
                  group.Key.SensitiveValue,
                  Count = group.Count(),
-                 Total = dt.AsEnumerable().Count(row => row["GroupID"].Equals(group.Key.GroupId))
+                 Total = dataTable.AsEnumerable().Count(row => row["GroupID"].Equals(group.Key.GroupId))
              })
              .ToList();
-
-
-
                     var groupsByGroupId = groupedRows
                         .GroupBy(row => row.GroupId)
                         .ToList();
@@ -2007,7 +1951,7 @@ namespace CrypTool.Plugins.Anonymity
                         for (int i = 0; i < groupSet.Count(); i++)
                         {
                             var group = groupSet.ElementAt(i);
-                            DataRow groupRow = dt.AsEnumerable().First(row => row["GroupID"].Equals(group.GroupId) && row[sensitiveIndex].Equals(group.SensitiveValue));
+                            DataRow groupRow = dataTable.AsEnumerable().First(row => row["GroupID"].Equals(group.GroupId) && row[sensitiveIndex].Equals(group.SensitiveValue));
                             DataRow newRow = newT.NewRow();
                             newRow.ItemArray = groupRow.ItemArray;
 
@@ -2019,12 +1963,7 @@ namespace CrypTool.Plugins.Anonymity
 
                                 entropyValue = Math.Round(entropyValue, 3, MidpointRounding.AwayFromZero);
                             }
-
-
-
                             newRow["-p * log (p)"] = entropyValue;
-
-
 
                             if (i == middleIndex)
                             {
@@ -2039,13 +1978,10 @@ namespace CrypTool.Plugins.Anonymity
                         }
                     }
 
-
                     bool b = false;
 
                     foreach (double e in entropyList)
                     {
-
-
                         if (e >= Math.Log(lValue, 2))
                         {
                             b = true;
@@ -2067,11 +2003,10 @@ namespace CrypTool.Plugins.Anonymity
 
                     }
 
-
                 }
                 else
                 {
-                    foreach (DataRow row in dt.Rows)
+                    foreach (DataRow row in dataTable.Rows)
                     {
                         DataRow newRow = newT.NewRow();
                         newRow.ItemArray = row.ItemArray;
@@ -2086,7 +2021,6 @@ namespace CrypTool.Plugins.Anonymity
 
 
                     tableMessage.Text = "Every row represents a single equivalence class right now. Please modify the data to ensure that multiple rows are identical with respect to the Quasi-identifiers.";
-
                 }
 
                 table.ItemsSource = newT.DefaultView;
@@ -2098,10 +2032,6 @@ namespace CrypTool.Plugins.Anonymity
                         CenterColumnData(a);
                     }
                 }
-
-
-
-
                 CenterColumnDataByName("Entropy");
             }catch(Exception ex)
             {
@@ -2110,25 +2040,19 @@ namespace CrypTool.Plugins.Anonymity
             }
         }
 
+        /// <summary>
+        ///  method for generating the tcloseness table
+        ///  t-value is calculated differently if the Sensitive attribute is numeric or categoric 
+        ///  t-value calculation logic is in other methods
+        /// </summary>
 
-
-
-
-        // method for generating the tcloseness table
-        /*
-         * t-value is calculated differently if the Sensitive attribute is numeric or categoric 
-         * t-value calculation logic is in other methods
-         * 
-         */
         private void TClosenessTable()
         {
 
-            if (labelComboboxes == null || dt == null)
+            if (labelComboboxes == null || dataTable == null)
             {
                 return;
             }
-
-
 
             int sensitiveIndex = -1;
             for (int i = 0; i < labelComboboxes.Count; i++)
@@ -2142,7 +2066,6 @@ namespace CrypTool.Plugins.Anonymity
 
             if (sensitiveIndex == -1)
             {
-
                 tableMessage.Text = "No sensitive value is selected, therefore t-Closeness cannot be calculated.";
                 return;
             }
@@ -2156,16 +2079,13 @@ namespace CrypTool.Plugins.Anonymity
                 }
             }
 
-            var distinctSensitiveValues = dt.AsEnumerable().Select(row => row[sensitiveIndex]).Distinct().ToList();
-
-            var equiClass = dt.AsEnumerable()
+            var distinctSensitiveValues = dataTable.AsEnumerable().Select(row => row[sensitiveIndex]).Distinct().ToList();
+            var equiClass = dataTable.AsEnumerable()
                 .GroupBy(row => string.Join("|", quasiIdentifierIndexes.Select(index => row[index])))
                 .ToList();
 
             int minGroupSize = equiClass.Min(group => group.Count());
-
-            DataTable newT = dt.Clone();
-
+            DataTable newT = dataTable.Clone();
             if (!newT.Columns.Contains("Frequency"))
             {
                 newT.Columns.Add("Frequency", typeof(string));
@@ -2207,26 +2127,21 @@ namespace CrypTool.Plugins.Anonymity
                         double relativeFrequency = (double)grpRow.Count / grpRow.Total;
                         newRow["Frequency"] = $"{grpRow.Count}/{grpRow.Total}";
 
-                        int overallCount = dt.AsEnumerable().Count(row => row[sensitiveIndex].Equals(grpRow.SensitiveValue));
-                        newRow["Overall Distribution"] = overallCount == 0 ? "0" : overallCount + "/" + dt.Rows.Count;
+                        int overallCount = dataTable.AsEnumerable().Count(row => row[sensitiveIndex].Equals(grpRow.SensitiveValue));
+                        newRow["Overall Distribution"] = overallCount == 0 ? "0" : overallCount + "/" + dataTable.Rows.Count;
 
-                        double overallDistribution = overallCount / (double)dt.Rows.Count;
+                        double overallDistribution = overallCount / (double)dataTable.Rows.Count;
                         tValue = CalculateEMDCategoric(relativeFrequency, overallDistribution, tValue);
                         if (tValue * 1000 != Math.Floor(tValue * 1000))
                         {
 
                             tValue = Math.Round(tValue, 3, MidpointRounding.AwayFromZero);
                         }
-
-
-
-
                         newT.Rows.Add(newRow);
                     }
 
                     var existingSensitive = group.Select(row => row[sensitiveIndex]).Distinct().ToList();
                     var missingSensitive = distinctSensitiveValues.Except(existingSensitive);
-
                     foreach (var missingSensitiveValue in missingSensitive)
                     {
                         DataRow missingRow = newT.NewRow();
@@ -2235,14 +2150,13 @@ namespace CrypTool.Plugins.Anonymity
                         missingRow[sensitiveIndex] = missingSensitiveValue;
                         missingRow["Frequency"] = "0";
 
-                        int overallCount = dt.AsEnumerable().Count(row => row[sensitiveIndex].Equals(missingSensitiveValue));
-                        missingRow["Overall Distribution"] = overallCount == 0 ? "0" : overallCount + "/" + dt.Rows.Count;
+                        int overallCount = dataTable.AsEnumerable().Count(row => row[sensitiveIndex].Equals(missingSensitiveValue));
+                        missingRow["Overall Distribution"] = overallCount == 0 ? "0" : overallCount + "/" + dataTable.Rows.Count;
 
-                        double overallDistribution = overallCount / (double)dt.Rows.Count;
+                        double overallDistribution = overallCount / (double)dataTable.Rows.Count;
                         tValue = CalculateEMDCategoric(0, overallDistribution, tValue);
                         if (tValue * 1000 != Math.Floor(tValue * 1000))
                         {
-
                             tValue = Math.Round(tValue, 3, MidpointRounding.AwayFromZero);
                         }
                         newT.Rows.Add(missingRow);
@@ -2267,7 +2181,6 @@ namespace CrypTool.Plugins.Anonymity
                     maxTValue = 0;
                 }
 
-
                 tableMessage.Text = "The table meets t-Closeness with a t-value of " + maxTValue.ToString(CultureInfo.InvariantCulture) + ". The highest EMD found in any equivalence class determines the overall t-value for the datatable.";
 
             }
@@ -2275,7 +2188,7 @@ namespace CrypTool.Plugins.Anonymity
             {
                 foreach (var group in equiClass)
                 {
-                    var orderedSensitive = dt.AsEnumerable()
+                    var orderedSensitive = dataTable.AsEnumerable()
                         .Select(row => double.Parse(row[sensitiveIndex].ToString()))
                         .Distinct()
                         .OrderBy(val => val)
@@ -2284,7 +2197,7 @@ namespace CrypTool.Plugins.Anonymity
                     var sensitiveValuesInGroup = group.Select(row => double.Parse(row[sensitiveIndex].ToString())).Distinct().ToList();
                     var missingSensitiveValues = orderedSensitive.Except(sensitiveValuesInGroup);
 
-                    double tValue = CalculateEMDNumeric(orderedSensitive, group, dt, sensitiveIndex);
+                    double tValue = CalculateEMDNumeric(orderedSensitive, group, dataTable, sensitiveIndex);
                     if (tValue * 1000 != Math.Floor(tValue * 1000))
                     {
 
@@ -2300,13 +2213,12 @@ namespace CrypTool.Plugins.Anonymity
                         int groupCount = group.Count(row => double.Parse(row[sensitiveIndex].ToString()) == value);
                         existingRow["Frequency"] = $"{groupCount}/{group.Count()}";
 
-                        int overallCount = dt.AsEnumerable().Count(row => double.Parse(row[sensitiveIndex].ToString()) == value);
-                        existingRow["Overall Distribution"] = overallCount == 0 ? "0" : overallCount + "/" + dt.Rows.Count;
+                        int overallCount = dataTable.AsEnumerable().Count(row => double.Parse(row[sensitiveIndex].ToString()) == value);
+                        existingRow["Overall Distribution"] = overallCount == 0 ? "0" : overallCount + "/" + dataTable.Rows.Count;
 
                         newT.Rows.Add(existingRow);
                     }
 
-  
                     foreach (var value in missingSensitiveValues)
                     {
                         DataRow missingRow = newT.NewRow();
@@ -2315,8 +2227,8 @@ namespace CrypTool.Plugins.Anonymity
                         missingRow[sensitiveIndex] = value;
                         missingRow["Frequency"] = "0";
 
-                        int overallCount = dt.AsEnumerable().Count(row => double.Parse(row[sensitiveIndex].ToString()) == value);
-                        missingRow["Overall Distribution"] = overallCount == 0 ? "0" : overallCount + "/" + dt.Rows.Count;
+                        int overallCount = dataTable.AsEnumerable().Count(row => double.Parse(row[sensitiveIndex].ToString()) == value);
+                        missingRow["Overall Distribution"] = overallCount == 0 ? "0" : overallCount + "/" + dataTable.Rows.Count;
 
                         newT.Rows.Add(missingRow);
                     }
@@ -2346,18 +2258,18 @@ namespace CrypTool.Plugins.Anonymity
 
             else
             {
-                foreach (DataRow dtRow in dt.Rows)
+                foreach (DataRow dtRow in dataTable.Rows)
                 {
                     DataRow newRow = newT.NewRow();
                     newRow.ItemArray = dtRow.ItemArray;
 
                     newRow["Frequency"] = "1/1";
 
-                    int overallCount = dt.AsEnumerable().Count(rowData => rowData[sensitiveIndex].Equals(dtRow[sensitiveIndex]));
-                    newRow["Overall Distribution"] = overallCount == 0 ? "0" : overallCount + "/" + dt.Rows.Count;
+                    int overallCount = dataTable.AsEnumerable().Count(rowData => rowData[sensitiveIndex].Equals(dtRow[sensitiveIndex]));
+                    newRow["Overall Distribution"] = overallCount == 0 ? "0" : overallCount + "/" + dataTable.Rows.Count;
                     if (hiddenComboboxes[sensitiveIndex].SelectedItem.ToString() == "Categoric")
                     {
-                        double tValue = CalculateEMDCategoricSingleRowGroup(dt, sensitiveIndex, distinctSensitiveValues, dtRow);
+                        double tValue = CalculateEMDCategoricSingleRowGroup(dataTable, sensitiveIndex, distinctSensitiveValues, dtRow);
                
                         if (tValue * 1000 != Math.Floor(tValue * 1000))
                         {
@@ -2370,16 +2282,16 @@ namespace CrypTool.Plugins.Anonymity
                     else if (hiddenComboboxes[sensitiveIndex].SelectedItem.ToString() == "Numeric")
                     {
 
-                        var orderedSensitiveValues = dt.AsEnumerable()
+                        var orderedSensitiveValues = dataTable.AsEnumerable()
                             .Select(rowData => double.Parse(rowData[sensitiveIndex].ToString()))
                             .Distinct()
                             .OrderBy(val => val)
                             .ToList();
 
-                        int overallSum = dt.AsEnumerable().Count(rowData => double.Parse(rowData[sensitiveIndex].ToString()) == double.Parse(dtRow[sensitiveIndex].ToString()));
-                        newRow["Overall Distribution"] = overallSum == 0 ? "0" : overallSum + "/" + dt.Rows.Count;
+                        int overallSum = dataTable.AsEnumerable().Count(rowData => double.Parse(rowData[sensitiveIndex].ToString()) == double.Parse(dtRow[sensitiveIndex].ToString()));
+                        newRow["Overall Distribution"] = overallSum == 0 ? "0" : overallSum + "/" + dataTable.Rows.Count;
 
-                        double tValue = CalculateEMDNumericSingleRowGroup(dtRow, dt, sensitiveIndex, orderedSensitiveValues);
+                        double tValue = CalculateEMDNumericSingleRowGroup(dtRow, dataTable, sensitiveIndex, orderedSensitiveValues);
                         if (tValue * 1000 != Math.Floor(tValue * 1000))
                         {
 
@@ -2427,28 +2339,31 @@ namespace CrypTool.Plugins.Anonymity
                     CenterColumnData(a);
                 }
             }
-
-
             CenterColumnDataByName("EMD");
         }
 
-
-
-
-        // method for calculating the t value if the sensitive value is categoric
+        /// <summary>
+        ///  method for calculating the t value if the sensitive value is categoric
+        /// </summary>
+        /// <param name="relativeFrequency"></param>
+        /// <param name="overallDistribution"></param>
+        ///  <param name="tValue"></param>
+        /// <returns>double tValue</returns>
 
         private double CalculateEMDCategoric(double relativeFrequency, double overallDistribution, double tValue)
         {
             tValue += Math.Abs(relativeFrequency - overallDistribution) / 2;
-
-         
-
             return tValue;
         }
 
+        /// <summary>
+        ///  method for calculating the t value if the sensitive value is numeric
+        /// </summary>
+        /// <param name="orderedSensitiveValues"></param>
+        /// <param name="group"></param>
+        ///  <param name="sensitiveIndex"></param>
+        /// <returns>double tValue</returns>
 
-
-        // method for calculating the t value if the sensitive value is numeric
         private double CalculateEMDNumeric(List<double> orderedSensitiveValues, IEnumerable<DataRow> group, DataTable dt, int sensitiveIndex)
         {
             double tValue = 0;
@@ -2466,18 +2381,18 @@ namespace CrypTool.Plugins.Anonymity
                 tValue += Math.Abs(r);
             }
             tValue /= (orderedSensitiveValues.Count - 1);
-
-         
-
-
             return tValue;
         }
 
-
-
-        // method for calculating the t value if the Sensitive attribute is numeric. Is called when there are no equivalence classes in the table and every row represents a single group
-
-        public double CalculateEMDNumericSingleRowGroup(DataRow row, DataTable dt, int sensitiveIndex, List<double> orderedSensitiveValues)
+        /// <summary>
+        /// method for calculating the t value if the Sensitive attribute is numeric. Is called when there are no equivalence classes in the table and every row represents a single group
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="dt"></param>
+        ///  <param name="sensitiveIndex"></param>
+        ///  <param name="orderedSensitiveValues"></param>
+        /// <returns>double tValue</returns>
+        public double CalculateEMDNumericSingleRowGroup(DataRow row, DataTable dataTable, int sensitiveIndex, List<double> orderedSensitiveValues)
         {
             double tValue = 0;
             double r = 0;
@@ -2487,27 +2402,30 @@ namespace CrypTool.Plugins.Anonymity
             {
                 double orderedValue = orderedSensitiveValues[i];
                 double groupDist = orderedValue == currentValue ? 1 : 0;
-                double overallDist = dt.AsEnumerable().Count(rowData => double.Parse(rowData[sensitiveIndex].ToString()) == orderedValue) / (double)dt.Rows.Count;
+                double overallDist = dataTable.AsEnumerable().Count(rowData => double.Parse(rowData[sensitiveIndex].ToString()) == orderedValue) / (double)dataTable.Rows.Count;
                 r += groupDist - overallDist;
                 tValue += Math.Abs(r);
             }
             tValue /= (orderedSensitiveValues.Count - 1);
          
-
-
-
             return tValue;
         }
 
-
-        // method for calculating the t value if the Sensitive attribute is categoric. Is called when there are no equivalence classes in the table and every row represents a single group
-        private double CalculateEMDCategoricSingleRowGroup(DataTable dt, int sensitiveIndex, List<object> distinctSensitiveValues, DataRow row)
+        /// <summary>
+        /// method for calculating the t value if the Sensitive attribute is categoric. Is called when there are no equivalence classes in the table and every row represents a single group
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <param name="sensitiveIndex"></param>
+        ///  <param name="distinctSensitiveValues"></param>
+        ///  <param name="row"></param>
+        /// <returns>double tValue</returns>
+        private double CalculateEMDCategoricSingleRowGroup(DataTable dataTable, int sensitiveIndex, List<object> distinctSensitiveValues, DataRow row)
         {
             double tValue = 0;
             foreach (var sensitiveValue in distinctSensitiveValues)
             {
-                int countSensitive = dt.AsEnumerable().Count(rowData => rowData[sensitiveIndex].Equals(sensitiveValue));
-                double overallDistribution = countSensitive / (double)dt.Rows.Count;
+                int countSensitive = dataTable.AsEnumerable().Count(rowData => rowData[sensitiveIndex].Equals(sensitiveValue));
+                double overallDistribution = countSensitive / (double)dataTable.Rows.Count;
                 if (sensitiveValue.Equals(row[sensitiveIndex]))
                 {
                     tValue += 1 - overallDistribution;
@@ -2518,20 +2436,15 @@ namespace CrypTool.Plugins.Anonymity
                 }
             }
             tValue = tValue / 2;
-          
-
+         
             return tValue;
         }
 
-
-
-
-        // method for generating the Recursive (c,l)-Diversity table
+        /// <summary>
+        /// method for generating the Recursive (c,l)-Diversity table
+        /// </summary>
         private void RecursiveLDiversityTable()
         {
-
-           
-
             int sensitiveIndex = -1;
             for (int i = 0; i < labelComboboxes.Count; i++)
             {
@@ -2557,13 +2470,13 @@ namespace CrypTool.Plugins.Anonymity
                 }
             }
 
-            var equivalenceClass = dt.AsEnumerable()
+            var equivalenceClass = dataTable.AsEnumerable()
             .GroupBy(row => string.Join("|", quasiIdentifierIndexes.Select(index => row[index])))
             .ToList();
 
             int minGroupSize = equivalenceClass.Min(group => group.Count());
 
-            var groupedRows = dt.AsEnumerable()
+            var groupedRows = dataTable.AsEnumerable()
                 .GroupBy(row => new { GroupId = row["GroupID"], SensitiveValue = row[sensitiveIndex] })
                 .Select(group => new
                 {
@@ -2573,7 +2486,7 @@ namespace CrypTool.Plugins.Anonymity
                 })
                 .ToList();
 
-            DataTable newT = dt.Clone();
+            DataTable newT = dataTable.Clone();
 
             if (!newT.Columns.Contains("Frequency"))
             {
@@ -2587,7 +2500,7 @@ namespace CrypTool.Plugins.Anonymity
 
             if (minGroupSize > 1)
             {
-                var equiClass = dt.AsEnumerable()
+                var equiClass = dataTable.AsEnumerable()
                     .GroupBy(row => row["GroupID"])
                     .Select(group => new
                     {
@@ -2604,7 +2517,7 @@ namespace CrypTool.Plugins.Anonymity
                 
                 foreach (var group in groupedRows)
                 {
-                    DataRow groupRow = dt.AsEnumerable().First(row => row["GroupID"].Equals(group.GroupId) && row[sensitiveIndex].Equals(group.SensitiveValue));
+                    DataRow groupRow = dataTable.AsEnumerable().First(row => row["GroupID"].Equals(group.GroupId) && row[sensitiveIndex].Equals(group.SensitiveValue));
 
                     DataRow newRow = newT.NewRow();
                     newRow.ItemArray = groupRow.ItemArray;
@@ -2664,7 +2577,7 @@ namespace CrypTool.Plugins.Anonymity
             }
             else
             {
-                foreach (DataRow row in dt.Rows)
+                foreach (DataRow row in dataTable.Rows)
                 {
                     DataRow newRow = newT.NewRow();
                     newRow.ItemArray = row.ItemArray;
@@ -2685,16 +2598,14 @@ namespace CrypTool.Plugins.Anonymity
                     CenterColumnData(a);
                 }
             }
-
-
             CenterColumnDataByName("c-value");
         }
 
-    
+        /// <summary>
+        ///  checks which tab is currently selected and calls the corresponding table method
+        /// </summary>
+        /// <param name="control"></param>
 
-
-
-        // checks which tab is currently selected and calles the corresponding table method
         private void CheckSelectedTab(TabControl control)
         {
             var selectedTab = control.SelectedItem as TabItem;
@@ -2738,8 +2649,6 @@ namespace CrypTool.Plugins.Anonymity
                 }
             }
 
-
-
             for (int a = 0; a < labelComboboxes.Count; a++)
             {
                 if (labelComboboxes[a].SelectedItem != null && labelComboboxes[a].SelectedItem.ToString() == "Identifier")
@@ -2748,97 +2657,6 @@ namespace CrypTool.Plugins.Anonymity
                 }
             }
 
-
         }
-
-
-
-        /*
-        public void Serialize()
-        {
-            MemoryStream stream = new MemoryStream();
-            stream.Write(BitConverter.GetBytes(labelComboboxes.Count), 0, 4);
-            foreach (var comboBox in labelComboboxes)
-            {
-
-                string selectedText = comboBox.SelectedItem?.ToString() ?? string.Empty;
-                byte[] textBytes = Encoding.UTF8.GetBytes(selectedText);
-                stream.Write(BitConverter.GetBytes(textBytes.Length), 0, 4);
-                stream.Write(textBytes, 0, textBytes.Length);
-            }
-
-
-            Settings.SerializedData = Convert.ToBase64String(stream.ToArray());
-
-        }
-
-
-        public void Deserialize()
-        {
-
-       
-
-            if (string.IsNullOrEmpty(Settings.SerializedData))
-            {
-
-                Console.WriteLine("Settings String is null");
-                return;
-            }
-            
-            
-            using (MemoryStream stream = new MemoryStream(Convert.FromBase64String(Settings.SerializedData)))
-            using (BinaryReader reader = new BinaryReader(stream))
-            {
-                int count = reader.ReadInt32();
-                for (int i = 0; i < count; i++)
-                {
-                    int textLength = reader.ReadInt32();
-                    string selectedText = Encoding.UTF8.GetString(reader.ReadBytes(textLength));
-
-                    if (labelComboboxes.Count > i)
-                    {
-                        labelComboboxes[i].SelectedItem = selectedText;
-                    }
-                }
-
-             
-                
-
-            }
-
-
-
-        }
-
-       
-
-
-       
-
-        */
-
-
-        
-
-      
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
-
 }

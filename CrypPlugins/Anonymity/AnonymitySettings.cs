@@ -1,5 +1,5 @@
 ﻿/*
-   Copyright CrypTool 2 Team <ct2contact@cryptool.org>
+   Copyright Mikail Sarier <mikail.sarier@students.uni-mannheim.de>
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -20,24 +20,14 @@ using System.ComponentModel;
 
 namespace CrypTool.Plugins.Anonymity
 {
-    // HOWTO: rename class (click name, press F2)
     public class AnonymitySettings : ISettings
     {
         #region Private Variables
 
         private string _rowSeparator = "\\n";
         private string _columnSeparator = ",";
-
-        //serialize
-       // private string serializedData = string.Empty;
         #endregion
-
         #region TaskPane Settings
-
-        /// <summary>
-        /// HOWTO: This is an example for a setting entity shown in the settings pane on the right of the CT2 main window.
-        /// This example setting uses a number field input, but there are many more input types available, see ControlType enumeration.
-        /// </summary>
         [TaskPane("Row separator", "This is the Row separator", null, 0, false, ControlType.TextBox)]
         public string RowSeparator
         {
@@ -50,7 +40,6 @@ namespace CrypTool.Plugins.Anonymity
                 if (_rowSeparator != value)
                 {
                     _rowSeparator = value;
-                    // HOWTO: MUST be called every time a property value changes with correct parameter name
                     OnPropertyChanged("_rowSeparator;");
                 }
             }
@@ -69,34 +58,13 @@ namespace CrypTool.Plugins.Anonymity
                 if (_columnSeparator != value)
                 {
                     _columnSeparator = value;
-                    // HOWTO: MUST be called every time a property value changes with correct parameter name
                     OnPropertyChanged("ColumnSeparator");
                 }
             }
         }
-
-        // serialize
-        /*
-        public string SerializedData
-        {
-            get => serializedData;
-            set
-            {
-                if (!serializedData.Equals(value))
-                {
-                    serializedData = value;
-                    OnPropertyChanged("SerializedData");
-                }
-            }
-        }
-        */
-
         #endregion
-
         #region Events
-
         public event PropertyChangedEventHandler PropertyChanged;
-
         private void OnPropertyChanged(string propertyName)
         {
             EventsHelper.PropertyChanged(PropertyChanged, this, propertyName);
